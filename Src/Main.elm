@@ -500,23 +500,23 @@ update msg m =
 
 view:Model->Html Msg
 view m =
-  Html.div [][
+  Html.div [class "body"][
     Html.div [class "inputDiv"][input [onInput InputFirst][],
       if(m.operation /= "square") then input [onInput InputSecond][] else text "",
       select [onInput ChangeOperation][option [value "multiply"][text "Multiply"], option [value "square"][text "Square"]]],
     Html.div [class "funFactDiv"][text (m.currFunFact),
       button [onClick GetRandomFact][text "Fun Fact"]],
-    Html.div [class ""][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
-        text ((listToString  m.firstList) ++ " x " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
+    Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
+        text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
         else if (m.firstFactor /= Nothing && m.operation == "square") then
           text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
         else
           text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
         if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text "")],
-    Html.div [][Html.text (listToString m.result)],
+    Html.div [class "resultDiv"][Html.text (listToString m.result)],
     if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && ((m.step <= 1) || (m.step > 1 && (List.length m.stepCalculations) == (List.length m.secondList))) || (m.firstFactor /= Nothing && m.operation == "square") || (m.firstFactor /= Nothing && m.secondFactor /=Nothing && (Maybe.withDefault 0 m.firstFactor <= 12 || Maybe.withDefault 0 m.secondFactor <= 12))) then button [onClick NextStep][if (m.step == 0) then text "Begin multiplying" else text "Next step"] else text "",
-    Html.div [][if (m.isFinished) then text "Good Job!" else text ""],
-    Html.div []([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m))
+    Html.div [class "finishedDiv"][if (m.isFinished) then text "Good Job!" else text ""],
+    Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m))
   ]
 
 
