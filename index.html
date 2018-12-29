@@ -4995,6 +4995,7 @@ var author$project$Main$model = {
 	currAnswer: elm$core$Maybe$Nothing,
 	currFunFact: '',
 	firstFactor: elm$core$Maybe$Nothing,
+	firstFactorString: '',
 	firstList: _List_Nil,
 	isFinished: false,
 	operation: 'multiply',
@@ -5002,6 +5003,7 @@ var author$project$Main$model = {
 	result: _List_Nil,
 	rules: A2(elm$html$Html$div, _List_Nil, _List_Nil),
 	secondFactor: elm$core$Maybe$Nothing,
+	secondFactorString: '',
 	secondList: _List_Nil,
 	step: 0,
 	stepCalculations: _List_Nil,
@@ -7746,6 +7748,7 @@ var author$project$Main$update = F2(
 							{
 								carry: 0,
 								firstFactor: elm$core$String$toInt(text),
+								firstFactorString: text,
 								firstList: author$project$Main$intToList(
 									elm$core$String$toInt(text)),
 								isFinished: false,
@@ -7772,6 +7775,7 @@ var author$project$Main$update = F2(
 								prevCarry: 0,
 								result: _List_Nil,
 								secondFactor: elm$core$String$toInt(text),
+								secondFactorString: text,
 								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
@@ -8233,7 +8237,7 @@ var author$project$Main$view = function (m) {
 							]),
 						_List_fromArray(
 							[
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
+								((elm$core$String$length(m.firstFactorString) > 10) || (elm$core$String$length(m.secondFactorString) > 10)) ? elm$html$Html$text('Please make your input values smoller than 11 digits.') : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
 								elm$html$Html$div,
 								_List_Nil,
 								_List_fromArray(
@@ -8247,7 +8251,7 @@ var author$project$Main$view = function (m) {
 										A3(
 											author$project$Main$addingSpanToNumberFirst,
 											author$project$Main$listToString(m.firstList),
-											m.step - 1,
+											m.step - 2,
 											elm$core$List$length(m.secondList))),
 										A2(
 										elm$html$Html$span,
@@ -8263,7 +8267,7 @@ var author$project$Main$view = function (m) {
 										elm$html$Html$span,
 										_List_fromArray(
 											[
-												elm$html$Html$Attributes$id('secoundNumber')
+												elm$html$Html$Attributes$id('secondNumber')
 											]),
 										A2(
 											author$project$Main$addingSpanToNumber,
@@ -8272,7 +8276,7 @@ var author$project$Main$view = function (m) {
 											1))
 									])) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? elm$html$Html$text(
 								elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.firstFactor))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.')),
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.'))),
 								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
 								elm$html$Html$sup,
 								_List_Nil,
@@ -8324,7 +8328,7 @@ var author$project$Main$view = function (m) {
 											]),
 										_List_Nil) : elm$html$Html$text('')
 									])) : elm$html$Html$text(''),
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')) && (!m.isFinished))) ? A2(
+								(((elm$core$String$length(m.firstFactorString) < 11) && (elm$core$String$length(m.secondFactorString) < 11)) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')) && (!m.isFinished)))) ? A2(
 								elm$html$Html$button,
 								_List_fromArray(
 									[
