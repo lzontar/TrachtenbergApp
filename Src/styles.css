@@ -27,7 +27,7 @@ body {
   text-align:center;
   font-size:2vw;
 }
- .nextStepDiv button {
+ .nextStepDiv button{
     float:right;
      display: inline-block;
     position:absolute;
@@ -94,6 +94,14 @@ button:hover span:after {
   right: 0;
 }
 
+.rulesDiv{
+  background-color: #cf3721;
+  color: white;
+  margin-top:1%;
+  padding:1%;
+  margin-left:10%;
+  margin-right:10%;
+}
 
 .funFactDiv {
   text-align: center;

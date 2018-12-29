@@ -8,6 +8,43 @@ import Browser
 import Json.Decode as D
 import Html.Attributes exposing (..)
 
+-->pravila racunanja, ki se pokazejo v aplikaciji
+updateRules: Model-> Html Msg
+updateRules mo=
+  case mo.operation of
+    "square" ->
+      case mo.firstList of
+        [_] -> Html.div [class "rulesDiv"][text "Just square it, it's quite simple..."]
+        [5, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Add 25 to the units digit."]]
+        [_, 5] -> Html.div [class "rulesDiv"][Html.div [][text "1. Multiply the tens digit by the next larger digit."]]
+        [_, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Do an 'open cross-product', where you multiply the first and last digits then double the result."], Html.div [][text "1. Square the tens digit"]]
+        [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."], Html.div [][text "1. Square the tens digit"]]
+        _-> Html.div [][]
+    "multiply" ->
+      case (mo.firstFactor, mo.secondFactor) of
+        (Just n, Just m) ->
+          let
+            bigger = if (n < m) then m else n
+            smaller = if (n < m) then n else m
+          in
+          case smaller of
+            0 -> Html.div [class "rulesDiv"][Html.div [][text "1. Zero times any number is always zero"]]
+            1 -> Html.div [class "rulesDiv"][Html.div [][text "1. Copy each digit in the number."]]
+            2 ->Html.div [class "rulesDiv"][Html.div [][text "1. Double the number."]]
+            3 ->Html.div [class "rulesDiv"][Html.div [][text "1. First step: Subtract from 10 and double, and add 5 if the number is odd."], Html.div [][text "2. Middle steps: Subtract from 9, double and add 5 if the number is odd, and add “half” the neighbor."], Html.div [][text "3. Last step: Take “half” the left-hand digit of multiplicand and reduce by 2."]]
+            4 ->Html.div [class "rulesDiv"][Html.div [][text "1. First step: Subtract from 10, and add 5 if the number is odd."], Html.div [][text "2. Middle steps: Subtract from 9 and add “half” the neighbor, plus 5 if the number is odd."], Html.div [][text "3. Last step: Take “half” the left-hand of the multiplicand and reduce by 1."]]
+            5 -> Html.div [class "rulesDiv"][Html.div [][text "1. Use “half” the neighbor, plus 5 if the number is odd."]]
+            6 -> Html.div [class "rulesDiv"][Html.div [][text "1. Add 5 to the number only if it is odd; Add “half” the neighbor."]]
+            7 -> Html.div [class "rulesDiv"][Html.div [][text "1. Double the number and add 5 if the number is odd, and add “half” the neighbor."]]
+            8 ->Html.div [class "rulesDiv"][Html.div [][text "1. First step: Subtract from 10 and double."], Html.div [][text "2. Middle steps: Subtract from 9 and double what you get, then add the neighbor."], Html.div [][text "3. Last step: Subtract two from the left-hand figure of the multiplicand."]]
+            9 -> Html.div [class "rulesDiv"][Html.div [][text "1. First step: subtract from 10"], Html.div [][text "2. Middle steps: Subtract from 9 and add the neighbor."], Html.div [][text "3. Last step: Reduce the left hand digit of multiplicand by 1."]]
+            10 -> Html.div [class "rulesDiv"][Html.div [][text "1. Use the neighbor."]]
+            11 -> Html.div [class "rulesDiv"][Html.div [][text "1. Add the neighbor."]]
+            12 -> Html.div [class "rulesDiv"][Html.div [][text "1. Double each number in turn and add its neighbor."]]
+            _ -> Html.div [class "rulesDiv"][Html.div [][text "1. When multiplying by a multiplier of any length, put as many zeros before the multiplicand as there are digits in the multiplier."],Html.div [][text "2. We make n (number of digits in multiplier) auxiliary multiplications, where we multiply inner digit of multiplier with inner digit of multiplicand, outer digit of multiplier with outer digit of multiplicand and so on."], Html.div [][text "3. Move the inner digit of multiplicand in auxiliary multiplications to the left for one digit."]]
+        (_, _) -> Html.div [][]
+    _ -> Html.div [][]
+
 -->iz danega stevila izvlecemo stevke in jih damo v seznam
 intToList: Maybe Int -> (List Int)
 intToList n =
@@ -70,7 +107,7 @@ showNextStepMultiplying m =
       multiplicationsSum = sumOfMultiplications multiplications + m.carry
       nextStep = m.result ++ [modBy 10 multiplicationsSum]
     in
-    {m | step = m.step + 1,prevCarry = m.carry ,carry = multiplicationsSum // 10, result = nextStep, stepCalculations = multiplications, isFinished = (List.length multiplications) < (List.length m.secondList)}
+    {m | step = m.step + 1,prevCarry = m.carry ,carry = multiplicationsSum // 10, result = nextStep, stepCalculations = multiplications, isFinished = m.step - 1 >= (List.length m.firstList) - (List.length m.secondList - 1) - 1}
 
 -->pokazemo naslednji korak pri kvadriranju
 showNextStepSquare: Model -> Model
@@ -254,7 +291,7 @@ showNextStepMultiplyingSmallerNs m =
               doubled = doubleTheNumber {m | result = List.reverse (numAtIx :: List.reverse m.result),stepCalculations = [], prevCarry = m.carry, carry = 0}
               n = addCarry doubled
             in
-            {n | step = n.step + 1}
+            {n | step = n.step + 1,isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         3->
           if (m.step == 1) then
             let
@@ -285,7 +322,7 @@ showNextStepMultiplyingSmallerNs m =
               addedCarryM = addCarry addedNeighbourM
               n = addedCarryM
             in
-            {n | step = n.step + 1}
+            {n | step = n.step + 1,isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         4->
           if (m.step == 1) then
             let
@@ -314,7 +351,7 @@ showNextStepMultiplyingSmallerNs m =
               addedCarryM = addCarry addedFiveIfOddM
               n = addedCarryM
             in
-            {n | step = n.step + 1}
+            {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         5->
           let
             numAtIx = intInList (m.step) lBigger
@@ -324,7 +361,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedFiveIfOddM
             n = addedCarryM
           in
-          {n | step = n.step + 1}
+          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         6->
           let
             numAtIx = intInList (m.step) lBigger
@@ -334,7 +371,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1}
+          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         7->
           let
             numAtIx = intInList (m.step) lBigger
@@ -345,7 +382,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1}
+          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         8->
           if (m.step == 1) then
             let
@@ -412,7 +449,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1}
+          {n | step = n.step + 1, isFinished = (n.step - 1 >= List.length lBigger)}
         12->
           let
             numAtIx = intInList (m.step) lBigger
@@ -422,7 +459,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1}
+          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
         _->m
     _-> m
 
@@ -435,6 +472,16 @@ showAuxCalculations m =
       (Html.div [][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations {m | stepCalculations = t})
     _ -> []
 
+-->pretvorba seznama stevk rezultata v string
+resultToString: List Int -> String
+resultToString l =
+  case l of
+    h::t ->
+      case t of
+        h1::t1 ->
+          (resultToString t)++ (String.fromInt h)
+        [] -> if (h == 0) then "" else String.fromInt h
+    [] -> ""
 type alias Model =
     {
     -->zaporedna številka koraka, ki ga izvajamo
@@ -464,7 +511,9 @@ type alias Model =
       -->trenutni odgovor
       currAnswer : Maybe Int,
     -->stevilo napacnih odgovorov
-      wrongAnswers : Int
+      wrongAnswers : Int,
+    --> Html Msg , ki vsebuje pravila mnozenja trenutnih stevil
+      rules : Html Msg
     }
 type alias Style =
     ( String, String )
@@ -489,20 +538,19 @@ update msg m =
       NewFunFact (Err _) ->
         (m,Cmd.none)
       InputFirst text ->
-        ({m | firstFactor = String.toInt text, firstList = intToList (String.toInt text), step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0}, Cmd.none)
+        ({m | firstFactor = String.toInt text, firstList = intToList (String.toInt text), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0}, Cmd.none)
       InputSecond text ->
-        ({m | secondFactor = String.toInt text, secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = []}, Cmd.none)
+        ({m | secondFactor = String.toInt text, firstList = intToList (m.firstFactor), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = []}, Cmd.none)
       NextStep ->
         -->za lazjo kalkulacijo dodamo nicle spredaj in zadaj prvega faktorja, ce ne gre za kvadriranje
         case (m.step, m.operation) of
-          (0, "multiply") -> update CheckAnswer {m | step = m.step + 1, firstList = if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then addZeros ((List.length m.secondList) - 1) (intToList m.firstFactor) else m.firstList}
-          (0, "square") -> update CheckAnswer {m | step = m.step + 1}
+          (0, "multiply") -> update CheckAnswer {m | step = m.step + 1, rules = updateRules m, firstList = if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then addZeros ((List.length m.secondList) - 1) (intToList m.firstFactor) else m.firstList}
+          (0, "square") -> update CheckAnswer {m | step = m.step + 1, rules = updateRules m}
           (_,"multiply") -> update CheckAnswer (if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then showNextStepMultiplying m else showNextStepMultiplyingSmallerNs m)
           (_, "square") -> update CheckAnswer (showNextStepSquare m)
           (_,_)-> (m, Cmd.none)
-
       ChangeOperation op->
-        ({m | operation = op, step = 0, stepCalculations = [], result = [], carry = 0, prevCarry = 0, isFinished = False}, Cmd.none)
+        ({m | operation = op, step = 0, stepCalculations = [], result = [], carry = 0, prevCarry = 0, isFinished = False, firstList= intToList m.firstFactor, rules = updateRules m}, Cmd.none)
       InputAnswer text ->
         ({m | currAnswer = String.toInt text}, Cmd.none)
       CheckAnswer ->
@@ -522,8 +570,7 @@ view m =
     Html.div [class "inputDiv"][input [onInput InputFirst][],
       if(m.operation /= "square") then input [onInput InputSecond][] else text "",
       select [onInput ChangeOperation][option [value "multiply"][text "Multiply"], option [value "square"][text "Square"]]],
-    Html.div [class "funFactDiv"][text (m.currFunFact),
-      button [onClick GetRandomFact][span [][text "Fun Fact"]]],
+    m.rules,
     Html.div [class "mainDiv"][
       Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
           text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
@@ -531,17 +578,24 @@ view m =
             text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
           else
             text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
-          if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (listToString m.result)) else text ""],
-      Html.div [class "answerDiv"][if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""],
+          if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
       Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m)),
-      Html.div [class "nextStepDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && ((m.step <= 1) || (m.step > 1 && (List.length m.stepCalculations) == (List.length m.secondList))) || (m.firstFactor /= Nothing && m.operation == "square") || (m.firstFactor /= Nothing && m.secondFactor /=Nothing && (Maybe.withDefault 0 m.firstFactor <= 12 || Maybe.withDefault 0 m.secondFactor <= 12))) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""]
+      if (m.isFinished == False) then Html.div [class "nextStepDiv"][
+        if (m.step >= 1) then Html.div [class "answerDiv"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""] else text "",
+        if (m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""
+        ] else text ""
       ],
       Html.div [class "finishedDiv", if (m.isFinished) then style "display" "block" else style "display" "none"][
-        Html.div [][text "Good Job!"],
-        Html.div [][text ("Number of wrong answers " ++ (String.fromInt m.wrongAnswers))]
-      ],
-      text (String.fromInt m.wrongAnswers)
-  ]
+        Html.img [src "https://www.freeiconspng.com/uploads/close-button-png-27.png", width 50, height 50][],
+        Html.div [][text "Good Job! You've made it to the end."],
+        Html.div [][text ("Number of wrong answers: " ++ (String.fromInt m.wrongAnswers))],
+        Html.div [][if (m.wrongAnswers == 0) then text "You really nailed it." else text "You can do better than that, right?"],
+        Html.div [][if(m.wrongAnswers == 0) then text "Reward: Infinite number of random fun facts about numbers." else text "If you get all the answers right, you will be rewarded!",
+          if (m.wrongAnswers == 0) then Html.div [class "funFactDiv"][text (m.currFunFact),
+            button [onClick GetRandomFact][span [][text "Fun Fact"]]] else text ""
+        ]
+      ]
+    ]
 
 
 
@@ -563,11 +617,12 @@ model =
    isFinished = False,
    operation = "multiply",
    wrongAnswers = 0,
-   currAnswer = Nothing
+   currAnswer = Nothing,
+   rules = Html.div [][]
  }
 
 init: () -> (Model, Cmd Msg)
 init _ =
-    update GetRandomFact model
+    (model, Cmd.none)
 main =
     Browser.element {init=init, view=view, update=update, subscriptions = \_ -> Sub.none}
