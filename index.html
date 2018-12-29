@@ -4991,10 +4991,12 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 };
 var elm$html$Html$div = _VirtualDom_node('div');
 var author$project$Main$model = {
+	answerInput: '',
 	carry: 0,
 	currAnswer: elm$core$Maybe$Nothing,
 	currFunFact: '',
 	firstFactor: elm$core$Maybe$Nothing,
+	firstInput: '',
 	firstList: _List_Nil,
 	isFinished: false,
 	operation: 'multiply',
@@ -5002,7 +5004,9 @@ var author$project$Main$model = {
 	result: _List_Nil,
 	rules: A2(elm$html$Html$div, _List_Nil, _List_Nil),
 	secondFactor: elm$core$Maybe$Nothing,
+	secondInput: '',
 	secondList: _List_Nil,
+	showReward: false,
 	step: 0,
 	stepCalculations: _List_Nil,
 	wrongAnswers: 0
@@ -5134,7 +5138,7 @@ var author$project$Main$showNextStepMultiplying = function (m) {
 			carry: (multiplicationsSum / 10) | 0,
 			isFinished: _Utils_cmp(
 				m.step - 1,
-				(elm$core$List$length(m.firstList) - (elm$core$List$length(m.secondList) - 1)) - 1) > -1,
+				elm$core$List$length(m.firstList) - (elm$core$List$length(m.secondList) - 1)) > -1,
 			prevCarry: m.carry,
 			result: nextStep,
 			step: m.step + 1,
@@ -5446,9 +5450,9 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					n,
 					{
 						isFinished: (_Utils_eq(
-							n.step - 1,
+							n.step,
 							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-							n.step - 1,
+							n.step,
 							elm$core$List$length(lBigger)) > 0),
 						step: n.step + 1
 					});
@@ -7746,6 +7750,7 @@ var author$project$Main$update = F2(
 							{
 								carry: 0,
 								firstFactor: elm$core$String$toInt(text),
+								firstInput: text,
 								firstList: author$project$Main$intToList(
 									elm$core$String$toInt(text)),
 								isFinished: false,
@@ -7772,6 +7777,7 @@ var author$project$Main$update = F2(
 								prevCarry: 0,
 								result: _List_Nil,
 								secondFactor: elm$core$String$toInt(text),
+								secondInput: text,
 								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
@@ -7831,20 +7837,11 @@ var author$project$Main$update = F2(
 					}
 				case 'ChangeOperation':
 					var op = msg.a;
+					var n = author$project$Main$model;
 					return _Utils_Tuple2(
 						_Utils_update(
-							m,
-							{
-								carry: 0,
-								firstList: author$project$Main$intToList(m.firstFactor),
-								isFinished: false,
-								operation: op,
-								prevCarry: 0,
-								result: _List_Nil,
-								rules: author$project$Main$updateRules(m),
-								step: 0,
-								stepCalculations: _List_Nil
-							}),
+							n,
+							{operation: op}),
 						elm$core$Platform$Cmd$none);
 				case 'InputAnswer':
 					var text = msg.a;
@@ -7852,40 +7849,60 @@ var author$project$Main$update = F2(
 						_Utils_update(
 							m,
 							{
+								answerInput: text,
 								currAnswer: elm$core$String$toInt(text)
 							}),
 						elm$core$Platform$Cmd$none);
-				default:
-					var _n2 = m.currAnswer;
-					if (_n2.$ === 'Just') {
-						var n = _n2.a;
-						var _n3 = elm$core$List$reverse(m.result);
-						if (_n3.b) {
-							var h = _n3.a;
-							var t = _n3.b;
+				case 'CheckAnswer':
+					var _n2 = m.step;
+					if (_n2 === 1) {
+						return _Utils_Tuple2(m, elm$core$Platform$Cmd$none);
+					} else {
+						var _n3 = m.currAnswer;
+						if (_n3.$ === 'Just') {
+							var n = _n3.a;
+							var _n4 = elm$core$List$reverse(m.result);
+							if (_n4.b) {
+								var h = _n4.a;
+								var t = _n4.b;
+								return _Utils_Tuple2(
+									_Utils_update(
+										m,
+										{
+											answerInput: '',
+											wrongAnswers: m.wrongAnswers + (_Utils_eq(h + (m.carry * 10), n) ? 0 : 1)
+										}),
+									elm$core$Platform$Cmd$none);
+							} else {
+								return _Utils_Tuple2(
+									_Utils_update(
+										m,
+										{answerInput: ''}),
+									elm$core$Platform$Cmd$none);
+							}
+						} else {
 							return _Utils_Tuple2(
 								_Utils_update(
 									m,
-									{
-										wrongAnswers: m.wrongAnswers + (_Utils_eq(h + (m.carry * 10), n) ? 0 : 1)
-									}),
+									{answerInput: '', wrongAnswers: m.wrongAnswers + 1}),
 								elm$core$Platform$Cmd$none);
-						} else {
-							return _Utils_Tuple2(m, elm$core$Platform$Cmd$none);
 						}
-					} else {
-						return _Utils_Tuple2(
-							_Utils_update(
-								m,
-								{wrongAnswers: m.wrongAnswers + 1}),
-							elm$core$Platform$Cmd$none);
 					}
+				case 'Restart':
+					return _Utils_Tuple2(author$project$Main$model, elm$core$Platform$Cmd$none);
+				default:
+					return _Utils_Tuple2(
+						_Utils_update(
+							m,
+							{showReward: true}),
+						elm$core$Platform$Cmd$none);
 			}
 		}
 	});
 var author$project$Main$ChangeOperation = function (a) {
 	return {$: 'ChangeOperation', a: a};
 };
+var author$project$Main$Finish = {$: 'Finish'};
 var author$project$Main$GetRandomFact = {$: 'GetRandomFact'};
 var author$project$Main$InputAnswer = function (a) {
 	return {$: 'InputAnswer', a: a};
@@ -7897,6 +7914,7 @@ var author$project$Main$InputSecond = function (a) {
 	return {$: 'InputSecond', a: a};
 };
 var author$project$Main$NextStep = {$: 'NextStep'};
+var author$project$Main$Restart = {$: 'Restart'};
 var author$project$Main$listToString = function (l) {
 	if (!l.b) {
 		return '';
@@ -8047,7 +8065,7 @@ var author$project$Main$view = function (m) {
 				_List_Nil,
 				_List_fromArray(
 					[
-						elm$html$Html$text('Array starts with 0')
+						elm$html$Html$text('TrachtenbergApp')
 					])),
 				A2(
 				elm$html$Html$div,
@@ -8057,18 +8075,22 @@ var author$project$Main$view = function (m) {
 					]),
 				_List_fromArray(
 					[
+						elm$html$Html$text('Multiplicand: '),
 						A2(
 						elm$html$Html$input,
 						_List_fromArray(
 							[
-								elm$html$Html$Events$onInput(author$project$Main$InputFirst)
+								elm$html$Html$Events$onInput(author$project$Main$InputFirst),
+								elm$html$Html$Attributes$value(m.firstInput)
 							]),
 						_List_Nil),
+						(m.operation !== 'square') ? elm$html$Html$text(' Multiplier: ') : elm$html$Html$text(''),
 						(m.operation !== 'square') ? A2(
 						elm$html$Html$input,
 						_List_fromArray(
 							[
-								elm$html$Html$Events$onInput(author$project$Main$InputSecond)
+								elm$html$Html$Events$onInput(author$project$Main$InputSecond),
+								elm$html$Html$Attributes$value(m.secondInput)
 							]),
 						_List_Nil) : elm$html$Html$text(''),
 						A2(
@@ -8110,6 +8132,86 @@ var author$project$Main$view = function (m) {
 					]),
 				_List_fromArray(
 					[
+						(!m.showReward) ? A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('nextStepDiv'),
+								A2(elm$html$Html$Attributes$style, 'display', 'inline-block'),
+								A2(elm$html$Html$Attributes$style, 'float', 'right')
+							]),
+						_List_fromArray(
+							[
+								((m.step >= 1) && (!m.isFinished)) ? A2(
+								elm$html$Html$div,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$class('answerDiv'),
+										A2(elm$html$Html$Attributes$style, 'display', 'inline-block')
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text('What is the result of auxiliary calculations?'),
+										((!m.isFinished) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')))) ? A2(
+										elm$html$Html$input,
+										_List_fromArray(
+											[
+												elm$html$Html$Events$onInput(author$project$Main$InputAnswer),
+												elm$html$Html$Attributes$value(m.answerInput),
+												A2(elm$html$Html$Attributes$style, 'display', 'inline-block')
+											]),
+										_List_Nil) : elm$html$Html$text(''),
+										((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')) && (!m.isFinished))) ? A2(
+										elm$html$Html$button,
+										_List_fromArray(
+											[
+												elm$html$Html$Events$onClick(author$project$Main$NextStep),
+												A2(elm$html$Html$Attributes$style, 'display', 'inline-block')
+											]),
+										_List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_Nil,
+												_List_fromArray(
+													[
+														elm$html$Html$text('Next step')
+													]))
+											])) : elm$html$Html$text('')
+									])) : (((!m.step) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')))) ? A2(
+								elm$html$Html$button,
+								_List_fromArray(
+									[
+										elm$html$Html$Events$onClick(author$project$Main$NextStep),
+										A2(elm$html$Html$Attributes$style, 'display', 'inline-block')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$span,
+										_List_Nil,
+										_List_fromArray(
+											[
+												elm$html$Html$text('Begin multiplication')
+											]))
+									])) : (m.isFinished ? A2(
+								elm$html$Html$button,
+								_List_fromArray(
+									[
+										elm$html$Html$Events$onClick(author$project$Main$Finish),
+										A2(elm$html$Html$Attributes$style, 'display', 'inline-block')
+									]),
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$span,
+										_List_Nil,
+										_List_fromArray(
+											[
+												elm$html$Html$text('Finish')
+											]))
+									])) : elm$html$Html$text('')))
+							])) : elm$html$Html$text(''),
 						A2(
 						elm$html$Html$div,
 						_List_fromArray(
@@ -8120,9 +8222,9 @@ var author$project$Main$view = function (m) {
 							[
 								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? elm$html$Html$text(
 								author$project$Main$listToString(m.firstList) + (' * ' + elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)))) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? elm$html$Html$text(
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)))) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? ((elm$core$List$length(m.firstList) > 3) ? elm$html$Html$text('Squaring bigger numbers is not implemented in this application. We are sorry.') : elm$html$Html$text(
 								elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.firstFactor))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.')),
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor)))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.')),
 								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
 								elm$html$Html$sup,
 								_List_Nil,
@@ -8145,56 +8247,14 @@ var author$project$Main$view = function (m) {
 									m.prevCarry ? elm$html$Html$text(
 									elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
-							author$project$Main$showAuxCalculations(m))),
-						(!m.isFinished) ? A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('nextStepDiv')
-							]),
-						_List_fromArray(
-							[
-								(m.step >= 1) ? A2(
-								elm$html$Html$div,
-								_List_fromArray(
-									[
-										elm$html$Html$Attributes$class('answerDiv')
-									]),
-								_List_fromArray(
-									[
-										elm$html$Html$text('What is the result of auxiliary calculations?'),
-										((!m.isFinished) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')))) ? A2(
-										elm$html$Html$input,
-										_List_fromArray(
-											[
-												elm$html$Html$Events$onInput(author$project$Main$InputAnswer)
-											]),
-										_List_Nil) : elm$html$Html$text('')
-									])) : elm$html$Html$text(''),
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')) && (!m.isFinished))) ? A2(
-								elm$html$Html$button,
-								_List_fromArray(
-									[
-										elm$html$Html$Events$onClick(author$project$Main$NextStep)
-									]),
-								_List_fromArray(
-									[
-										A2(
-										elm$html$Html$span,
-										_List_Nil,
-										_List_fromArray(
-											[
-												(!m.step) ? elm$html$Html$text('Begin multiplying') : elm$html$Html$text('Next step')
-											]))
-									])) : elm$html$Html$text('')
-							])) : elm$html$Html$text('')
+							author$project$Main$showAuxCalculations(m)))
 					])),
 				A2(
 				elm$html$Html$div,
 				_List_fromArray(
 					[
 						elm$html$Html$Attributes$class('finishedDiv'),
-						m.isFinished ? A2(elm$html$Html$Attributes$style, 'display', 'block') : A2(elm$html$Html$Attributes$style, 'display', 'none')
+						m.showReward ? A2(elm$html$Html$Attributes$style, 'display', 'block') : A2(elm$html$Html$Attributes$style, 'display', 'none')
 					]),
 				_List_fromArray(
 					[
@@ -8204,19 +8264,27 @@ var author$project$Main$view = function (m) {
 							[
 								elm$html$Html$Attributes$src('https://www.freeiconspng.com/uploads/close-button-png-27.png'),
 								elm$html$Html$Attributes$width(50),
-								elm$html$Html$Attributes$height(50)
+								elm$html$Html$Attributes$height(50),
+								elm$html$Html$Attributes$class('closeImg'),
+								elm$html$Html$Events$onClick(author$project$Main$Restart)
 							]),
 						_List_Nil),
 						A2(
 						elm$html$Html$div,
-						_List_Nil,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('finishedTitle')
+							]),
 						_List_fromArray(
 							[
 								elm$html$Html$text('Good Job! You\'ve made it to the end.')
 							])),
 						A2(
 						elm$html$Html$div,
-						_List_Nil,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('finishedStats')
+							]),
 						_List_fromArray(
 							[
 								elm$html$Html$text(
@@ -8224,14 +8292,20 @@ var author$project$Main$view = function (m) {
 							])),
 						A2(
 						elm$html$Html$div,
-						_List_Nil,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('finishedStats')
+							]),
 						_List_fromArray(
 							[
 								(!m.wrongAnswers) ? elm$html$Html$text('You really nailed it.') : elm$html$Html$text('You can do better than that, right?')
 							])),
 						A2(
 						elm$html$Html$div,
-						_List_Nil,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('reward')
+							]),
 						_List_fromArray(
 							[
 								(!m.wrongAnswers) ? elm$html$Html$text('Reward: Infinite number of random fun facts about numbers.') : elm$html$Html$text('If you get all the answers right, you will be rewarded!'),
@@ -8248,7 +8322,8 @@ var author$project$Main$view = function (m) {
 										elm$html$Html$button,
 										_List_fromArray(
 											[
-												elm$html$Html$Events$onClick(author$project$Main$GetRandomFact)
+												elm$html$Html$Events$onClick(author$project$Main$GetRandomFact),
+												elm$html$Html$Attributes$class('funFactBtn')
 											]),
 										_List_fromArray(
 											[

@@ -2,8 +2,38 @@ body {
     background-image:url("background-image.jpg");
     position:relative;
 }
+
+.finishedDiv {
+  position:absolute;
+  background-color:#eaeffa;
+  border: 1px solid #d3d3d3;
+  margin-left: 5%;
+  margin-right: 5%;
+  width:90%;
+  top:10%;
+  height:80vh;
+  color:black;
+}
+
+.closeImg {
+  float:right;
+}
+.finishedTitle {
+  font-size: 3vw;
+  margin-bottom:5%;
+  text-align:center;
+  color:white;
+  background-color: #5a82d8;
+}
+.finishedStats {
+  font-size: 2vw;
+}
+.reward {
+  margin-top:5%;
+  font-size:2vw;
+}
 .inputDiv {
-    background-color: #31a9b8;
+    background-color: #2a52a2;
     color:white;
     padding:1%;
     margin-left:10%;
@@ -12,7 +42,7 @@ body {
 }
 .mainDiv {
     background-color:#fadea0;
-    height:60vh;
+    height:65vh;
     margin-left: 10%;
     margin-right: 10%;
     margin-top:2%;
@@ -27,37 +57,37 @@ body {
   text-align:center;
   font-size:2vw;
 }
- .nextStepDiv button{
-    float:right;
-     display: inline-block;
-    position:absolute;
-    top:80%;
-    border-radius: 4px;
-    background-color: #258039;
-    border: none;
-    color: #FFFFFF;
-    text-align: center;
-    font-size: 28px;
-    padding: 20px;
-    transition: all 0.5s;
-    cursor: pointer;
-    margin: 5px;
+
+.nextStepDiv {
+  padding-top:1%;
+  margin-right: 2%;
 }
 
-.funFactDiv button {
-  display: inline-block;
-    float:right;
-    border-radius: 4px;
-    background-color: #258039;
-    border: none;
-    color: #FFFFFF;
-    text-align: center;
-    font-size: 20px;
-    padding: 5px;
-    width:12%;
-    transition: all 0.5s;
-    cursor: pointer;
-    margin-right:1%;
+.nextStepDiv button {
+ position:relative;
+ left:2%;
+ border-radius: 4px;
+ background-color: #258039;
+ border: none;
+ color: #FFFFFF;
+ font-size: 20px;
+ padding: 5px;
+ transition: all 0.5s;
+ cursor: pointer;
+}
+
+.funFactBtn {
+   border-radius: 4px;
+   background-color: #258039;
+   border: none;
+   color: #FFFFFF;
+   text-align: center;
+   font-size: 20px;
+   padding: 5px;
+   width:12%;
+   transition: all 0.5s;
+   cursor: pointer;
+   margin-right:1%;
 }
 
 button span {
@@ -94,7 +124,7 @@ button:hover span:after {
   right: 0;
 }
 
-.rulesDiv{
+.rulesDiv {
   background-color: #cf3721;
   color: white;
   margin-top:1%;
@@ -111,8 +141,6 @@ button:hover span:after {
   margin-bottom:1%;
   padding-top:1%;
   padding-bottom:1%;
-  color:white;
-  background-color:#cf3721;
   border-radius:5px;
   font-size:20px;
 }

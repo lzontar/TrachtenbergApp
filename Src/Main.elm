@@ -107,7 +107,7 @@ showNextStepMultiplying m =
       multiplicationsSum = sumOfMultiplications multiplications + m.carry
       nextStep = m.result ++ [modBy 10 multiplicationsSum]
     in
-    {m | step = m.step + 1,prevCarry = m.carry ,carry = multiplicationsSum // 10, result = nextStep, stepCalculations = multiplications, isFinished = m.step - 1 >= (List.length m.firstList) - (List.length m.secondList - 1) - 1}
+    {m | step = m.step + 1,prevCarry = m.carry ,carry = multiplicationsSum // 10, result = nextStep, stepCalculations = multiplications, isFinished = m.step - 1 >= (List.length m.firstList) - (List.length m.secondList - 1)}
 
 -->pokazemo naslednji korak pri kvadriranju
 showNextStepSquare: Model -> Model
@@ -291,7 +291,7 @@ showNextStepMultiplyingSmallerNs m =
               doubled = doubleTheNumber {m | result = List.reverse (numAtIx :: List.reverse m.result),stepCalculations = [], prevCarry = m.carry, carry = 0}
               n = addCarry doubled
             in
-            {n | step = n.step + 1,isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+            {n | step = n.step + 1,isFinished = (n.step == (List.length lBigger) && m.carry == 0) || (n.step > (List.length lBigger))}
         3->
           if (m.step == 1) then
             let
@@ -513,7 +513,15 @@ type alias Model =
     -->stevilo napacnih odgovorov
       wrongAnswers : Int,
     --> Html Msg , ki vsebuje pravila mnozenja trenutnih stevil
-      rules : Html Msg
+      rules : Html Msg,
+    -->vrednost inputa prvega faktorja
+      firstInput : String,
+    -->vrednost inputa drugega faktorja
+      secondInput : String,
+    -->answerInput
+      answerInput : String,
+    -->showReward ce je True pokaze okno z nagrado, ki jo pribori uporabnik, ce je False ne kaze okna
+    showReward : Bool
     }
 type alias Style =
     ( String, String )
@@ -526,7 +534,9 @@ type Msg =
     NextStep |
     ChangeOperation String |
     InputAnswer String |
-    CheckAnswer
+    CheckAnswer |
+    Restart |
+    Finish
 
 update:Msg->Model->(Model,Cmd Msg)
 update msg m =
@@ -538,9 +548,9 @@ update msg m =
       NewFunFact (Err _) ->
         (m,Cmd.none)
       InputFirst text ->
-        ({m | firstFactor = String.toInt text, firstList = intToList (String.toInt text), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0}, Cmd.none)
+        ({m | firstFactor = String.toInt text, firstList = intToList (String.toInt text), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0, firstInput = text}, Cmd.none)
       InputSecond text ->
-        ({m | secondFactor = String.toInt text, firstList = intToList (m.firstFactor), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = []}, Cmd.none)
+        ({m | secondFactor = String.toInt text, firstList = intToList (m.firstFactor), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = [], secondInput = text}, Cmd.none)
       NextStep ->
         -->za lazjo kalkulacijo dodamo nicle spredaj in zadaj prvega faktorja, ce ne gre za kvadriranje
         case (m.step, m.operation) of
@@ -550,49 +560,59 @@ update msg m =
           (_, "square") -> update CheckAnswer (showNextStepSquare m)
           (_,_)-> (m, Cmd.none)
       ChangeOperation op->
-        ({m | operation = op, step = 0, stepCalculations = [], result = [], carry = 0, prevCarry = 0, isFinished = False, firstList= intToList m.firstFactor, rules = updateRules m}, Cmd.none)
+        let
+          n = model
+        in
+        ({n | operation = op}, Cmd.none)
       InputAnswer text ->
-        ({m | currAnswer = String.toInt text}, Cmd.none)
+        ({m | currAnswer = String.toInt text, answerInput = text}, Cmd.none)
       CheckAnswer ->
-        case m.currAnswer of
-          Just n ->
-            case (List.reverse m.result) of
-              (h::t) ->
-                ({m | wrongAnswers = m.wrongAnswers + (if ((h + m.carry * 10) == n) then 0 else 1)}, Cmd.none)
-              [] -> (m, Cmd.none)
-          Nothing ->
-            ({m | wrongAnswers = m.wrongAnswers + 1}, Cmd.none)
+        case m.step of
+          1-> (m, Cmd.none)
+          _->
+            case m.currAnswer of
+              Just n ->
+                case (List.reverse m.result) of
+                  (h::t) ->
+                    ({m | wrongAnswers = m.wrongAnswers + (if ((h + m.carry * 10) == n) then 0 else 1), answerInput = ""}, Cmd.none)
+                  [] -> ({m | answerInput = ""}, Cmd.none)
+              Nothing ->
+                ({m | wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
+      Restart ->
+        (model, Cmd.none)
+      Finish ->
+        ({m | showReward = True}, Cmd.none)
 
 view:Model->Html Msg
 view m =
   Html.div [class "body"][
-    nav[][text "Array starts with 0"],
-    Html.div [class "inputDiv"][input [onInput InputFirst][],
-      if(m.operation /= "square") then input [onInput InputSecond][] else text "",
+    nav[][text "TrachtenbergApp"],
+    Html.div [class "inputDiv"][text "Multiplicand: ", input [onInput InputFirst,value m.firstInput][],
+      if (m.operation /= "square") then text " Multiplier: " else text "",if (m.operation /= "square") then input [onInput InputSecond, value m.secondInput][] else text "",
       select [onInput ChangeOperation][option [value "multiply"][text "Multiply"], option [value "square"][text "Square"]]],
     m.rules,
     Html.div [class "mainDiv"][
+      if (m.showReward == False) then Html.div [class "nextStepDiv", style "display" "inline-block", style "float" "right"][
+        if (m.step >= 1 && m.isFinished == False) then Html.div [class "answerDiv", style "display" "inline-block"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer, value m.answerInput, style "display" "inline-block"][] else text "", if (m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep, style "display" "inline-block"][span [][text "Next step"]] else text ""]
+        else if (m.step == 0 && m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square")) then button [onClick NextStep, style "display" "inline-block"][span [][text "Begin multiplication"]] else if (m.isFinished == True) then button [onClick Finish, style "display" "inline-block"][span [][text "Finish"]] else text ""] else text "",
+
       Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
           text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
           else if (m.firstFactor /= Nothing && m.operation == "square") then
-            text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
+            if (List.length m.firstList > 3) then text "Squaring bigger numbers is not implemented in this application. We are sorry." else text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
           else
             text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
           if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
-      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m)),
-      if (m.isFinished == False) then Html.div [class "nextStepDiv"][
-        if (m.step >= 1) then Html.div [class "answerDiv"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""] else text "",
-        if (m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""
-        ] else text ""
+      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m))
       ],
-      Html.div [class "finishedDiv", if (m.isFinished) then style "display" "block" else style "display" "none"][
-        Html.img [src "https://www.freeiconspng.com/uploads/close-button-png-27.png", width 50, height 50][],
-        Html.div [][text "Good Job! You've made it to the end."],
-        Html.div [][text ("Number of wrong answers: " ++ (String.fromInt m.wrongAnswers))],
-        Html.div [][if (m.wrongAnswers == 0) then text "You really nailed it." else text "You can do better than that, right?"],
-        Html.div [][if(m.wrongAnswers == 0) then text "Reward: Infinite number of random fun facts about numbers." else text "If you get all the answers right, you will be rewarded!",
+      Html.div [class "finishedDiv", if (m.showReward) then style "display" "block" else style "display" "none"][
+        Html.img [src "https://www.freeiconspng.com/uploads/close-button-png-27.png", width 50, height 50, class "closeImg", onClick Restart][],
+        Html.div [class "finishedTitle"][text "Good Job! You've made it to the end."],
+        Html.div [class "finishedStats"][text ("Number of wrong answers: " ++ (String.fromInt m.wrongAnswers))],
+        Html.div [class "finishedStats"][if (m.wrongAnswers == 0) then text "You really nailed it." else text "You can do better than that, right?"],
+        Html.div [class "reward"][if(m.wrongAnswers == 0) then text "Reward: Infinite number of random fun facts about numbers." else text "If you get all the answers right, you will be rewarded!",
           if (m.wrongAnswers == 0) then Html.div [class "funFactDiv"][text (m.currFunFact),
-            button [onClick GetRandomFact][span [][text "Fun Fact"]]] else text ""
+            button [onClick GetRandomFact, class "funFactBtn"][span [][text "Fun Fact"]]] else text ""
         ]
       ]
     ]
@@ -618,7 +638,11 @@ model =
    operation = "multiply",
    wrongAnswers = 0,
    currAnswer = Nothing,
-   rules = Html.div [][]
+   rules = Html.div [][],
+   firstInput = "",
+   secondInput = "",
+   answerInput = "",
+   showReward = False
  }
 
 init: () -> (Model, Cmd Msg)
