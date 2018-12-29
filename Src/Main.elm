@@ -8,6 +8,39 @@ import Browser
 import Json.Decode as D
 import Html.Attributes exposing (..)
 
+-->sprememba stevila v string obiki in dodamo <span id="num_"> za vsako stevko
+addingSpanToNumber: String -> Int -> List (Html Msg)
+addingSpanToNumber word counter =
+  if word=="" then
+    []
+  else
+    let
+        wordLeft = String.dropRight 1 word
+        wordRight = String.right 1 word
+    in
+
+    List.append (addingSpanToNumber wordLeft (counter+1)) ([Html.span[class ("spanNum"++(String.fromInt counter))][text (wordRight)]])
+
+-->sprememba stevila v string obiki in dodamo <span id="num_"> za vsako stevko
+-->upostevamo kuk zamaknemo spane v levo
+addingSpanToNumberFirst: String -> Int -> Int -> List (Html Msg)
+addingSpanToNumberFirst word skip counter =
+  if word=="" then
+    []
+  else
+    let
+          wordLeft = String.dropRight 1 word
+          wordRight = String.right 1 word
+    in
+    if (skip > 0) then
+      List.append (addingSpanToNumberFirst wordLeft (skip-1) counter) ([Html.span[class "spanNum"][text (wordRight)]])
+    else
+      if (counter > 0) then
+        List.append (addingSpanToNumberFirst wordLeft skip (counter-1)) ([Html.span[class ("spanNum"++(String.fromInt counter))][text (wordRight)]])
+      else
+        List.append (addingSpanToNumberFirst wordLeft skip counter) ([Html.span[class "spanNum"][text (wordRight)]])
+
+
 -->pravila racunanja, ki se pokazejo v aplikaciji
 updateRules: Model-> Html Msg
 updateRules mo=
@@ -465,11 +498,11 @@ showNextStepMultiplyingSmallerNs m =
 
 -->pomozne funkcije, za mnozenje z manjsimi stevili(x <= 12)
 -->seznam pomoznih mnozenj
-showAuxCalculations: Model -> List (Html Msg)
-showAuxCalculations m =
+showAuxCalculations: Model -> Int -> List (Html Msg)
+showAuxCalculations m counter =
   case m.stepCalculations of
     (((a, b), res), op) :: t ->
-      (Html.div [][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations {m | stepCalculations = t})
+      (Html.div [class ("spanNum"++(String.fromInt counter))][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations {m | stepCalculations = t} (counter-1))
     _ -> []
 
 -->pretvorba seznama stevk rezultata v string
@@ -563,6 +596,7 @@ update msg m =
           Nothing ->
             ({m | wrongAnswers = m.wrongAnswers + 1}, Cmd.none)
 
+
 view:Model->Html Msg
 view m =
   Html.div [class "body"][
@@ -573,13 +607,15 @@ view m =
     m.rules,
     Html.div [class "mainDiv"][
       Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
-          text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
+          Html.div [][Html.span [id "firstNumber"](addingSpanToNumberFirst (listToString  m.firstList) (m.step-1) (List.length m.secondList)),
+          Html.span [id "operator"][text (" * ")],
+          Html.span [id "secoundNumber"](addingSpanToNumber (String.fromInt (Maybe.withDefault 0 m.secondFactor)) 1)]
           else if (m.firstFactor /= Nothing && m.operation == "square") then
             text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
           else
             text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
           if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
-      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m)),
+      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m (List.length m.secondList))),
       if (m.isFinished == False) then Html.div [class "nextStepDiv"][
         if (m.step >= 1) then Html.div [class "answerDiv"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""] else text "",
         if (m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""
@@ -596,8 +632,6 @@ view m =
         ]
       ]
     ]
-
-
 
 
 model:Model

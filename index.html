@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="Src/styles.css">
+    <link rel="stylesheet" href="src/styles.css">
   <title>Main</title>
 </head>
 
@@ -7897,6 +7897,114 @@ var author$project$Main$InputSecond = function (a) {
 	return {$: 'InputSecond', a: a};
 };
 var author$project$Main$NextStep = {$: 'NextStep'};
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var elm$core$String$slice = _String_slice;
+var elm$core$String$dropRight = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(elm$core$String$slice, 0, -n, string);
+	});
+var elm$core$String$length = _String_length;
+var elm$core$String$right = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3(
+			elm$core$String$slice,
+			-n,
+			elm$core$String$length(string),
+			string);
+	});
+var elm$html$Html$span = _VirtualDom_node('span');
+var author$project$Main$addingSpanToNumber = F2(
+	function (word, counter) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanToNumber, wordLeft, counter + 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class(
+								'spanNum' + elm$core$String$fromInt(counter))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					]));
+		}
+	});
+var author$project$Main$addingSpanToNumberFirst = F3(
+	function (word, skip, counter) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return (skip > 0) ? A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip - 1, counter),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : ((counter > 0) ? A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip, counter - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class(
+								'spanNum' + elm$core$String$fromInt(counter))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip, counter),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])));
+		}
+	});
 var author$project$Main$listToString = function (l) {
 	if (!l.b) {
 		return '';
@@ -7925,42 +8033,48 @@ var author$project$Main$resultToString = function (l) {
 		return '';
 	}
 };
-var author$project$Main$showAuxCalculations = function (m) {
-	var _n0 = m.stepCalculations;
-	if (_n0.b) {
-		var _n1 = _n0.a;
-		var _n2 = _n1.a;
-		var _n3 = _n2.a;
-		var a = _n3.a;
-		var b = _n3.b;
-		var res = _n2.b;
-		var op = _n1.b;
-		var t = _n0.b;
-		return A2(
-			elm$core$List$cons,
-			A2(
-				elm$html$Html$div,
-				_List_Nil,
-				_List_fromArray(
-					[
-						elm$html$Html$text(
-						elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
-					])),
-			author$project$Main$showAuxCalculations(
-				_Utils_update(
-					m,
-					{stepCalculations: t})));
-	} else {
-		return _List_Nil;
-	}
-};
+var author$project$Main$showAuxCalculations = F2(
+	function (m, counter) {
+		var _n0 = m.stepCalculations;
+		if (_n0.b) {
+			var _n1 = _n0.a;
+			var _n2 = _n1.a;
+			var _n3 = _n2.a;
+			var a = _n3.a;
+			var b = _n3.b;
+			var res = _n2.b;
+			var op = _n1.b;
+			var t = _n0.b;
+			return A2(
+				elm$core$List$cons,
+				A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class(
+							'spanNum' + elm$core$String$fromInt(counter))
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(
+							elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
+						])),
+				A2(
+					author$project$Main$showAuxCalculations,
+					_Utils_update(
+						m,
+						{stepCalculations: t}),
+					counter - 1));
+		} else {
+			return _List_Nil;
+		}
+	});
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$nav = _VirtualDom_node('nav');
 var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$select = _VirtualDom_node('select');
-var elm$html$Html$span = _VirtualDom_node('span');
 var elm$html$Html$sup = _VirtualDom_node('sup');
 var elm$html$Html$Attributes$height = function (n) {
 	return A2(
@@ -7968,6 +8082,7 @@ var elm$html$Html$Attributes$height = function (n) {
 		'height',
 		elm$core$String$fromInt(n));
 };
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
@@ -8118,9 +8233,44 @@ var author$project$Main$view = function (m) {
 							]),
 						_List_fromArray(
 							[
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? elm$html$Html$text(
-								author$project$Main$listToString(m.firstList) + (' * ' + elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)))) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? elm$html$Html$text(
+								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
+								elm$html$Html$div,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('firstNumber')
+											]),
+										A3(
+											author$project$Main$addingSpanToNumberFirst,
+											author$project$Main$listToString(m.firstList),
+											m.step - 1,
+											elm$core$List$length(m.secondList))),
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('operator')
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text(' * ')
+											])),
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('secoundNumber')
+											]),
+										A2(
+											author$project$Main$addingSpanToNumber,
+											elm$core$String$fromInt(
+												A2(elm$core$Maybe$withDefault, 0, m.secondFactor)),
+											1))
+									])) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? elm$html$Html$text(
 								elm$core$String$fromInt(
 									A2(elm$core$Maybe$withDefault, 0, m.firstFactor))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.')),
 								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
@@ -8145,7 +8295,10 @@ var author$project$Main$view = function (m) {
 									m.prevCarry ? elm$html$Html$text(
 									elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
-							author$project$Main$showAuxCalculations(m))),
+							A2(
+								author$project$Main$showAuxCalculations,
+								m,
+								elm$core$List$length(m.secondList)))),
 						(!m.isFinished) ? A2(
 						elm$html$Html$div,
 						_List_fromArray(
@@ -8351,8 +8504,6 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
-var elm$core$String$length = _String_length;
-var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
 	function (n, string) {
 		return (n < 1) ? string : A3(

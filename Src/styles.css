@@ -116,3 +116,36 @@ button:hover span:after {
   border-radius:5px;
   font-size:20px;
 }
+
+ .spanNum1 {
+   color: #e6194B; /*red*/
+   font-weight: bold;
+ }
+ .spanNum2 {
+   color: #f58231; /*orange*/
+   font-weight: bold;
+ }
+ .spanNum5 {
+   color: #3cb44b; /*green*/
+   font-weight: bold;
+ }
+ .spanNum6 {
+   color: #42d4f4; /*cyan*/
+   font-weight: bold;
+ }
+ .spanNum7 {
+   color: #4363d8; /*blue*/
+   font-weight: bold;
+ }
+ .spanNum4 {
+   color: #911eb4; /*purple*/
+   font-weight: bold;
+ }
+ .spanNum8 {
+   color: #f032e6; /*magenta*/
+   font-weight: bold;
+ }
+ .spanNum3 {
+   color: #a9a9a9; /*grey*/
+   font-weight: bold;
+ }
