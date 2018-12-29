@@ -460,7 +460,11 @@ type alias Model =
     -->indikator ali je izračun končan
       isFinished : Bool,
     --> String z informacijo o operaciji, ki jo uporabnik izvaja
-      operation : String
+      operation : String,
+      -->trenutni odgovor
+      currAnswer : Maybe Int,
+    -->stevilo napacnih odgovorov
+      wrongAnswers : Int
     }
 type alias Style =
     ( String, String )
@@ -471,7 +475,9 @@ type Msg =
     InputFirst String |
     InputSecond String |
     NextStep |
-    ChangeOperation String
+    ChangeOperation String |
+    InputAnswer String |
+    CheckAnswer
 
 update:Msg->Model->(Model,Cmd Msg)
 update msg m =
@@ -489,34 +495,52 @@ update msg m =
       NextStep ->
         -->za lazjo kalkulacijo dodamo nicle spredaj in zadaj prvega faktorja, ce ne gre za kvadriranje
         case (m.step, m.operation) of
-          (0, "multiply") -> ({m | step = m.step + 1, firstList = if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then addZeros ((List.length m.secondList) - 1) (intToList m.firstFactor) else m.firstList}, Cmd.none)
-          (0, "square") -> ({m | step = m.step + 1}, Cmd.none)
-          (_,"multiply") -> (if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then showNextStepMultiplying m else showNextStepMultiplyingSmallerNs m, Cmd.none)
-          (_, "square") -> (showNextStepSquare m, Cmd.none)
+          (0, "multiply") -> update CheckAnswer {m | step = m.step + 1, firstList = if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then addZeros ((List.length m.secondList) - 1) (intToList m.firstFactor) else m.firstList}
+          (0, "square") -> update CheckAnswer {m | step = m.step + 1}
+          (_,"multiply") -> update CheckAnswer (if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then showNextStepMultiplying m else showNextStepMultiplyingSmallerNs m)
+          (_, "square") -> update CheckAnswer (showNextStepSquare m)
           (_,_)-> (m, Cmd.none)
 
       ChangeOperation op->
         ({m | operation = op, step = 0, stepCalculations = [], result = [], carry = 0, prevCarry = 0, isFinished = False}, Cmd.none)
+      InputAnswer text ->
+        ({m | currAnswer = String.toInt text}, Cmd.none)
+      CheckAnswer ->
+        case m.currAnswer of
+          Just n ->
+            case (List.reverse m.result) of
+              (h::t) ->
+                ({m | wrongAnswers = m.wrongAnswers + (if ((h + m.carry * 10) == n) then 0 else 1)}, Cmd.none)
+              [] -> (m, Cmd.none)
+          Nothing ->
+            ({m | wrongAnswers = m.wrongAnswers + 1}, Cmd.none)
 
 view:Model->Html Msg
 view m =
   Html.div [class "body"][
+    nav[][text "Array starts with 0"],
     Html.div [class "inputDiv"][input [onInput InputFirst][],
       if(m.operation /= "square") then input [onInput InputSecond][] else text "",
       select [onInput ChangeOperation][option [value "multiply"][text "Multiply"], option [value "square"][text "Square"]]],
     Html.div [class "funFactDiv"][text (m.currFunFact),
-      button [onClick GetRandomFact][text "Fun Fact"]],
-    Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
-        text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
-        else if (m.firstFactor /= Nothing && m.operation == "square") then
-          text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
-        else
-          text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
-        if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text "")],
-    Html.div [class "resultDiv"][Html.text (listToString m.result)],
-    if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && ((m.step <= 1) || (m.step > 1 && (List.length m.stepCalculations) == (List.length m.secondList))) || (m.firstFactor /= Nothing && m.operation == "square") || (m.firstFactor /= Nothing && m.secondFactor /=Nothing && (Maybe.withDefault 0 m.firstFactor <= 12 || Maybe.withDefault 0 m.secondFactor <= 12))) then button [onClick NextStep][if (m.step == 0) then text "Begin multiplying" else text "Next step"] else text "",
-    Html.div [class "finishedDiv"][if (m.isFinished) then text "Good Job!" else text ""],
-    Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m))
+      button [onClick GetRandomFact][span [][text "Fun Fact"]]],
+    Html.div [class "mainDiv"][
+      Html.div [class "calculationDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
+          text ((listToString  m.firstList) ++ " * " ++ (String.fromInt (Maybe.withDefault 0 m.secondFactor)))
+          else if (m.firstFactor /= Nothing && m.operation == "square") then
+            text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
+          else
+            text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
+          if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (listToString m.result)) else text ""],
+      Html.div [class "answerDiv"][if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""],
+      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m)),
+      Html.div [class "nextStepDiv"][if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && ((m.step <= 1) || (m.step > 1 && (List.length m.stepCalculations) == (List.length m.secondList))) || (m.firstFactor /= Nothing && m.operation == "square") || (m.firstFactor /= Nothing && m.secondFactor /=Nothing && (Maybe.withDefault 0 m.firstFactor <= 12 || Maybe.withDefault 0 m.secondFactor <= 12))) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""]
+      ],
+      Html.div [class "finishedDiv", if (m.isFinished) then style "display" "block" else style "display" "none"][
+        Html.div [][text "Good Job!"],
+        Html.div [][text ("Number of wrong answers " ++ (String.fromInt m.wrongAnswers))]
+      ],
+      text (String.fromInt m.wrongAnswers)
   ]
 
 
@@ -537,11 +561,13 @@ model =
    carry = 0,
    prevCarry = 0,
    isFinished = False,
-   operation = "multiply"
+   operation = "multiply",
+   wrongAnswers = 0,
+   currAnswer = Nothing
  }
 
 init: () -> (Model, Cmd Msg)
 init _ =
-    (model, Cmd.none)
+    update GetRandomFact model
 main =
     Browser.element {init=init, view=view, update=update, subscriptions = \_ -> Sub.none}
