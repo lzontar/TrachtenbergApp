@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="Src/styles.css">
+  <link rel="stylesheet" href="src/styles.css"> 
   <title>Main</title>
 </head>
 
@@ -4996,6 +4996,7 @@ var author$project$Main$model = {
 	currAnswer: elm$core$Maybe$Nothing,
 	currFunFact: '',
 	firstFactor: elm$core$Maybe$Nothing,
+	firstFactorString: '',
 	firstInput: '',
 	firstList: _List_Nil,
 	isFinished: false,
@@ -5004,6 +5005,7 @@ var author$project$Main$model = {
 	result: _List_Nil,
 	rules: A2(elm$html$Html$div, _List_Nil, _List_Nil),
 	secondFactor: elm$core$Maybe$Nothing,
+	secondFactorString: '',
 	secondInput: '',
 	secondList: _List_Nil,
 	showReward: false,
@@ -5239,8 +5241,8 @@ var author$project$Main$addNeigbour = F3(
 							[
 								_Utils_Tuple2(
 								_Utils_Tuple2(
-									_Utils_Tuple2(hRes + (10 * m.prevCarry), (neighbour / 2) | 0),
-									(hRes + (10 * m.prevCarry)) + ((neighbour / 2) | 0)),
+									_Utils_Tuple2(hRes + (10 * m.prevCarry), (neighbour / divisor) | 0),
+									(hRes + (10 * m.prevCarry)) + ((neighbour / divisor) | 0)),
 								' + ')
 							]))
 				});
@@ -7750,6 +7752,7 @@ var author$project$Main$update = F2(
 							{
 								carry: 0,
 								firstFactor: elm$core$String$toInt(text),
+								firstFactorString: text,
 								firstInput: text,
 								firstList: author$project$Main$intToList(
 									elm$core$String$toInt(text)),
@@ -7777,6 +7780,7 @@ var author$project$Main$update = F2(
 								prevCarry: 0,
 								result: _List_Nil,
 								secondFactor: elm$core$String$toInt(text),
+								secondFactorString: text,
 								secondInput: text,
 								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
@@ -7915,6 +7919,154 @@ var author$project$Main$InputSecond = function (a) {
 };
 var author$project$Main$NextStep = {$: 'NextStep'};
 var author$project$Main$Restart = {$: 'Restart'};
+var elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3(elm$core$List$foldr, elm$core$List$cons, ys, xs);
+		}
+	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var elm$core$String$slice = _String_slice;
+var elm$core$String$dropRight = F2(
+	function (n, string) {
+		return (n < 1) ? string : A3(elm$core$String$slice, 0, -n, string);
+	});
+var elm$core$String$length = _String_length;
+var elm$core$String$right = F2(
+	function (n, string) {
+		return (n < 1) ? '' : A3(
+			elm$core$String$slice,
+			-n,
+			elm$core$String$length(string),
+			string);
+	});
+var elm$html$Html$span = _VirtualDom_node('span');
+var author$project$Main$addingSpanSmallMultiplication1 = F2(
+	function (word, skip) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return skip ? A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanSmallMultiplication1, wordLeft, skip - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanSmallMultiplication1, wordLeft, skip - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum5')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					]));
+		}
+	});
+var author$project$Main$addingSpanToNumber = F2(
+	function (word, counter) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanToNumber, wordLeft, counter + 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class(
+								'spanNum' + elm$core$String$fromInt(counter))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					]));
+		}
+	});
+var author$project$Main$addingSpanToNumberFirst = F3(
+	function (word, skip, counter) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return (skip > 0) ? A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip - 1, counter),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : ((counter > 0) ? A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip, counter - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class(
+								'spanNum' + elm$core$String$fromInt(counter))
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : A2(
+				elm$core$List$append,
+				A3(author$project$Main$addingSpanToNumberFirst, wordLeft, skip, counter),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])));
+		}
+	});
 var author$project$Main$listToString = function (l) {
 	if (!l.b) {
 		return '';
@@ -7943,7 +8095,7 @@ var author$project$Main$resultToString = function (l) {
 		return '';
 	}
 };
-var author$project$Main$showAuxCalculations = function (m) {
+var author$project$Main$showAuxCalculations1 = function (m) {
 	var _n0 = m.stepCalculations;
 	if (_n0.b) {
 		var _n1 = _n0.a;
@@ -7958,13 +8110,16 @@ var author$project$Main$showAuxCalculations = function (m) {
 			elm$core$List$cons,
 			A2(
 				elm$html$Html$div,
-				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('spanNum5')
+					]),
 				_List_fromArray(
 					[
 						elm$html$Html$text(
 						elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
 					])),
-			author$project$Main$showAuxCalculations(
+			author$project$Main$showAuxCalculations1(
 				_Utils_update(
 					m,
 					{stepCalculations: t})));
@@ -7972,13 +8127,48 @@ var author$project$Main$showAuxCalculations = function (m) {
 		return _List_Nil;
 	}
 };
+var author$project$Main$showAuxCalculations2 = F2(
+	function (m, counter) {
+		var _n0 = m.stepCalculations;
+		if (_n0.b) {
+			var _n1 = _n0.a;
+			var _n2 = _n1.a;
+			var _n3 = _n2.a;
+			var a = _n3.a;
+			var b = _n3.b;
+			var res = _n2.b;
+			var op = _n1.b;
+			var t = _n0.b;
+			return A2(
+				elm$core$List$cons,
+				A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class(
+							'spanNum' + elm$core$String$fromInt(counter))
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(
+							elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
+						])),
+				A2(
+					author$project$Main$showAuxCalculations2,
+					_Utils_update(
+						m,
+						{stepCalculations: t}),
+					counter - 1));
+		} else {
+			return _List_Nil;
+		}
+	});
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$img = _VirtualDom_node('img');
 var elm$html$Html$input = _VirtualDom_node('input');
 var elm$html$Html$nav = _VirtualDom_node('nav');
 var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$select = _VirtualDom_node('select');
-var elm$html$Html$span = _VirtualDom_node('span');
 var elm$html$Html$sup = _VirtualDom_node('sup');
 var elm$html$Html$Attributes$height = function (n) {
 	return A2(
@@ -7986,6 +8176,7 @@ var elm$html$Html$Attributes$height = function (n) {
 		'height',
 		elm$core$String$fromInt(n));
 };
+var elm$html$Html$Attributes$id = elm$html$Html$Attributes$stringProperty('id');
 var elm$html$Html$Attributes$src = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
@@ -8052,6 +8243,11 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
 var author$project$Main$view = function (m) {
+	var _switch = ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? false : ((_Utils_cmp(
+		A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+		A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) < 0) ? true : false);
+	var biggerThen12 = ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? true : false;
+	var biggerThen1 = ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 1) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 1)) ? true : false;
 	return A2(
 		elm$html$Html$div,
 		_List_fromArray(
@@ -8178,7 +8374,7 @@ var author$project$Main$view = function (m) {
 														elm$html$Html$text('Next step')
 													]))
 											])) : elm$html$Html$text('')
-									])) : (((!m.step) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square')))) ? A2(
+									])) : ((((elm$core$String$length(m.firstFactorString) < 11) && (elm$core$String$length(m.secondFactorString) < 11)) && ((!m.step) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square'))))) ? A2(
 								elm$html$Html$button,
 								_List_fromArray(
 									[
@@ -8194,7 +8390,7 @@ var author$project$Main$view = function (m) {
 											[
 												elm$html$Html$text('Begin multiplication')
 											]))
-									])) : (m.isFinished ? A2(
+									])) : ((((elm$core$String$length(m.firstFactorString) < 11) && (elm$core$String$length(m.secondFactorString) < 11)) && m.isFinished) ? A2(
 								elm$html$Html$button,
 								_List_fromArray(
 									[
@@ -8220,12 +8416,82 @@ var author$project$Main$view = function (m) {
 							]),
 						_List_fromArray(
 							[
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? elm$html$Html$text(
-								author$project$Main$listToString(m.firstList) + (' * ' + elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)))) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? ((elm$core$List$length(m.firstList) > 3) ? elm$html$Html$text('Squaring bigger numbers is not implemented in this application. We are sorry.') : elm$html$Html$text(
-								elm$core$String$fromInt(
-									A2(elm$core$Maybe$withDefault, 0, m.firstFactor)))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.')),
-								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
+								((elm$core$String$length(m.firstFactorString) > 10) || (elm$core$String$length(m.secondFactorString) > 10)) ? elm$html$Html$text('Please make your input values smoller than 11 digits.') : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
+								elm$html$Html$div,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('firstNumber')
+											]),
+										_switch ? (biggerThen1 ? A2(
+											author$project$Main$addingSpanSmallMultiplication1,
+											author$project$Main$listToString(m.secondList),
+											m.step - 2) : _List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class(
+														(m.step > 1) ? 'spanNum5' : 'spanNum')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(m.secondFactorString)
+													]))
+											])) : A3(
+											author$project$Main$addingSpanToNumberFirst,
+											author$project$Main$listToString(m.firstList),
+											m.step - 2,
+											elm$core$List$length(m.secondList))),
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('operator')
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text(' * ')
+											])),
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$id('secondNumber')
+											]),
+										_switch ? _List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('spanNum')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(m.firstFactorString)
+													]))
+											]) : A2(
+											author$project$Main$addingSpanToNumber,
+											elm$core$String$fromInt(
+												A2(elm$core$Maybe$withDefault, 0, m.secondFactor)),
+											1))
+									])) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
+								elm$html$Html$span,
+								_List_fromArray(
+									[
+										elm$html$Html$Attributes$id('onlyNumber')
+									]),
+								(elm$core$List$length(m.firstList) > 3) ? _List_fromArray(
+									[
+										elm$html$Html$text('Squaring bigger numbers is not implemented in this application. We are sorry.')
+									]) : A2(author$project$Main$addingSpanSmallMultiplication1, m.firstFactorString, m.step - 2)) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.'))),
+								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((m.operation === 'square') && (elm$core$List$length(m.firstList) <= 3))) ? A2(
 								elm$html$Html$sup,
 								_List_Nil,
 								_List_fromArray(
@@ -8247,7 +8513,10 @@ var author$project$Main$view = function (m) {
 									m.prevCarry ? elm$html$Html$text(
 									elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
-							author$project$Main$showAuxCalculations(m)))
+							biggerThen12 ? A2(
+								author$project$Main$showAuxCalculations2,
+								m,
+								elm$core$List$length(m.secondList)) : author$project$Main$showAuxCalculations1(m)))
 					])),
 				A2(
 				elm$html$Html$div,
@@ -8426,8 +8695,6 @@ var elm$core$Task$perform = F2(
 			elm$core$Task$Perform(
 				A2(elm$core$Task$map, toMessage, task)));
 	});
-var elm$core$String$length = _String_length;
-var elm$core$String$slice = _String_slice;
 var elm$core$String$dropLeft = F2(
 	function (n, string) {
 		return (n < 1) ? string : A3(
