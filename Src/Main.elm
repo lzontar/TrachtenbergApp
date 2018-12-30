@@ -640,9 +640,9 @@ update msg m =
       NewFunFact (Err _) ->
         (m,Cmd.none)
       InputFirst text ->
-        ({m | firstFactor = String.toInt text, firstFactorString = text, firstList = intToList (String.toInt text), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0, firstInput = text}, Cmd.none)
+        ({m | firstFactor = String.toInt text, firstFactorString = text, firstList = intToList (String.toInt text), secondList = if (((String.toInt text) /= Nothing && (Maybe.withDefault 0 (String.toInt text)) <= 12) || (m.secondFactor /= Nothing && (Maybe.withDefault 0 (m.secondFactor)) <= 12)) then (intToList (m.secondFactor)) else (List.reverse (intToList (m.secondFactor))) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0, firstInput = text}, Cmd.none)
       InputSecond text ->
-        ({m | secondFactor = String.toInt text, secondFactorString = text, firstList = intToList (m.firstFactor), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = [], secondInput = text}, Cmd.none)
+        ({m | secondFactor = String.toInt text, secondFactorString = text, firstList = intToList (m.firstFactor), secondList = if (((String.toInt text) /= Nothing && (Maybe.withDefault 0 (String.toInt text)) <= 12) || (m.firstFactor /= Nothing && (Maybe.withDefault 0 (m.firstFactor)) <= 12)) then (intToList (String.toInt text)) else (List.reverse (intToList (String.toInt text))) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = [], secondInput = text}, Cmd.none)
       NextStep ->
         -->za lazjo kalkulacijo dodamo nicle spredaj in zadaj prvega faktorja, ce ne gre za kvadriranje
         case (m.step, m.operation) of
