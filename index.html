@@ -8490,7 +8490,19 @@ var author$project$Main$view = function (m) {
 								(elm$core$List$length(m.firstList) > 3) ? _List_fromArray(
 									[
 										elm$html$Html$text('Squaring bigger numbers is not implemented in this application. We are sorry.')
-									]) : A2(author$project$Main$addingSpanSmallMultiplication1, m.firstFactorString, m.step - 2)) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.'))),
+									]) : _List_fromArray(
+									[
+										A2(
+										elm$html$Html$span,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('spanNum')
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text(m.firstFactorString)
+											]))
+									])) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.'))),
 								((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((m.operation === 'square') && (elm$core$List$length(m.firstList) <= 3))) ? A2(
 								elm$html$Html$sup,
 								_List_Nil,
