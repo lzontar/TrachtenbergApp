@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-    <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="src/styles.css">
   <title>Main</title>
 </head>
 
@@ -4998,6 +4998,7 @@ var author$project$Main$model = {
 	firstFactorString: '',
 	firstList: _List_Nil,
 	isFinished: false,
+	isSwitched: false,
 	operation: 'multiply',
 	prevCarry: 0,
 	result: _List_Nil,
@@ -5018,6 +5019,7 @@ var author$project$Main$CheckAnswer = {$: 'CheckAnswer'};
 var author$project$Main$NewFunFact = function (a) {
 	return {$: 'NewFunFact', a: a};
 };
+var author$project$Main$NextStep = {$: 'NextStep'};
 var author$project$Main$addZeros = F2(
 	function (len, list) {
 		addZeros:
@@ -7752,12 +7754,15 @@ var author$project$Main$update = F2(
 								firstList: author$project$Main$intToList(
 									elm$core$String$toInt(text)),
 								isFinished: false,
+								isSwitched: false,
 								prevCarry: 0,
 								result: _List_Nil,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
+								secondFactor: m.isSwitched ? m.firstFactor : m.secondFactor,
+								secondFactorString: m.isSwitched ? m.firstFactorString : m.secondFactorString,
+								secondList: m.isSwitched ? m.firstList : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
-										elm$core$String$toInt(text))),
+										elm$core$String$toInt(text)))),
 								step: 0,
 								stepCalculations: _List_Nil,
 								wrongAnswers: 0
@@ -7770,16 +7775,19 @@ var author$project$Main$update = F2(
 							m,
 							{
 								carry: 0,
-								firstList: author$project$Main$intToList(m.firstFactor),
+								firstFactor: m.isSwitched ? m.secondFactor : m.firstFactor,
+								firstFactorString: m.isSwitched ? m.secondFactorString : m.firstFactorString,
+								firstList: m.isSwitched ? m.secondList : author$project$Main$intToList(m.firstFactor),
 								isFinished: false,
+								isSwitched: false,
 								prevCarry: 0,
 								result: _List_Nil,
 								secondFactor: elm$core$String$toInt(text),
 								secondFactorString: text,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
+								secondList: m.isSwitched ? m.firstList : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
-										elm$core$String$toInt(text))),
+										elm$core$String$toInt(text)))),
 								step: 0,
 								stepCalculations: _List_Nil,
 								wrongAnswers: 0
@@ -7859,7 +7867,7 @@ var author$project$Main$update = F2(
 								currAnswer: elm$core$String$toInt(text)
 							}),
 						elm$core$Platform$Cmd$none);
-				default:
+				case 'CheckAnswer':
 					var _n2 = m.currAnswer;
 					if (_n2.$ === 'Just') {
 						var n = _n2.a;
@@ -7884,12 +7892,53 @@ var author$project$Main$update = F2(
 								{wrongAnswers: m.wrongAnswers + 1}),
 							elm$core$Platform$Cmd$none);
 					}
+				default:
+					var _n4 = _Utils_Tuple2(m.step, m.operation);
+					if ((!_n4.a) && (_n4.b === 'multiply')) {
+						var $temp$msg = author$project$Main$CheckAnswer,
+							$temp$m = _Utils_update(
+							m,
+							{
+								firstFactor: ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? m.firstFactor : ((_Utils_cmp(
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) < 0) ? m.secondFactor : m.firstFactor),
+								firstFactorString: m.secondFactorString,
+								firstList: ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? A2(
+									author$project$Main$addZeros,
+									elm$core$List$length(m.secondList) - 1,
+									author$project$Main$intToList(m.firstFactor)) : ((_Utils_cmp(
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) > -1) ? m.firstList : m.secondList),
+								isSwitched: ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? false : ((_Utils_cmp(
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) < 0) ? true : false),
+								rules: author$project$Main$updateRules(m),
+								secondFactor: ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? m.secondFactor : ((_Utils_cmp(
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) < 0) ? m.firstFactor : m.secondFactor),
+								secondFactorString: m.firstFactorString,
+								secondList: ((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? m.secondList : ((_Utils_cmp(
+									A2(elm$core$Maybe$withDefault, 0, m.firstFactor),
+									A2(elm$core$Maybe$withDefault, 0, m.secondFactor)) < 0) ? m.firstList : m.secondList),
+								step: m.step + 1
+							});
+						msg = $temp$msg;
+						m = $temp$m;
+						continue update;
+					} else {
+						var $temp$msg = author$project$Main$NextStep,
+							$temp$m = m;
+						msg = $temp$msg;
+						m = $temp$m;
+						continue update;
+					}
 			}
 		}
 	});
 var author$project$Main$ChangeOperation = function (a) {
 	return {$: 'ChangeOperation', a: a};
 };
+var author$project$Main$CheckSize = {$: 'CheckSize'};
 var author$project$Main$GetRandomFact = {$: 'GetRandomFact'};
 var author$project$Main$InputAnswer = function (a) {
 	return {$: 'InputAnswer', a: a};
@@ -7900,7 +7949,6 @@ var author$project$Main$InputFirst = function (a) {
 var author$project$Main$InputSecond = function (a) {
 	return {$: 'InputSecond', a: a};
 };
-var author$project$Main$NextStep = {$: 'NextStep'};
 var elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -7927,6 +7975,70 @@ var elm$core$String$right = F2(
 			string);
 	});
 var elm$html$Html$span = _VirtualDom_node('span');
+var author$project$Main$addingSpanSmallMultiplication1 = F2(
+	function (word, skip) {
+		if (word === '') {
+			return _List_Nil;
+		} else {
+			var wordRight = A2(elm$core$String$right, 1, word);
+			var wordLeft = A2(elm$core$String$dropRight, 1, word);
+			return skip ? A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanSmallMultiplication1, wordLeft, skip - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					])) : A2(
+				elm$core$List$append,
+				A2(author$project$Main$addingSpanSmallMultiplication1, wordLeft, skip - 1),
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$span,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('spanNum5')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text(wordRight)
+							]))
+					]));
+		}
+	});
+var author$project$Main$addingSpanSmallMultiplication2 = function (word) {
+	if (word === '') {
+		return _List_Nil;
+	} else {
+		var wordRight = A2(elm$core$String$right, 1, word);
+		var wordLeft = A2(elm$core$String$dropRight, 1, word);
+		return A2(
+			elm$core$List$append,
+			author$project$Main$addingSpanSmallMultiplication2(wordLeft),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$span,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('spanNum')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(wordRight)
+						]))
+				]));
+	}
+};
 var author$project$Main$addingSpanToNumber = F2(
 	function (word, counter) {
 		if (word === '') {
@@ -8037,7 +8149,39 @@ var author$project$Main$resultToString = function (l) {
 		return '';
 	}
 };
-var author$project$Main$showAuxCalculations = F2(
+var author$project$Main$showAuxCalculations1 = function (m) {
+	var _n0 = m.stepCalculations;
+	if (_n0.b) {
+		var _n1 = _n0.a;
+		var _n2 = _n1.a;
+		var _n3 = _n2.a;
+		var a = _n3.a;
+		var b = _n3.b;
+		var res = _n2.b;
+		var op = _n1.b;
+		var t = _n0.b;
+		return A2(
+			elm$core$List$cons,
+			A2(
+				elm$html$Html$div,
+				_List_fromArray(
+					[
+						elm$html$Html$Attributes$class('spanNum5')
+					]),
+				_List_fromArray(
+					[
+						elm$html$Html$text(
+						elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
+					])),
+			author$project$Main$showAuxCalculations1(
+				_Utils_update(
+					m,
+					{stepCalculations: t})));
+	} else {
+		return _List_Nil;
+	}
+};
+var author$project$Main$showAuxCalculations2 = F2(
 	function (m, counter) {
 		var _n0 = m.stepCalculations;
 		if (_n0.b) {
@@ -8064,7 +8208,7 @@ var author$project$Main$showAuxCalculations = F2(
 							elm$core$String$fromInt(a) + (op + (elm$core$String$fromInt(b) + (' = ' + elm$core$String$fromInt(res)))))
 						])),
 				A2(
-					author$project$Main$showAuxCalculations,
+					author$project$Main$showAuxCalculations2,
 					_Utils_update(
 						m,
 						{stepCalculations: t}),
@@ -8248,11 +8392,27 @@ var author$project$Main$view = function (m) {
 											[
 												elm$html$Html$Attributes$id('firstNumber')
 											]),
-										A3(
+										((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? A3(
 											author$project$Main$addingSpanToNumberFirst,
 											author$project$Main$listToString(m.firstList),
 											m.step - 2,
-											elm$core$List$length(m.secondList))),
+											elm$core$List$length(m.secondList)) : ((A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 1) ? A2(
+											author$project$Main$addingSpanSmallMultiplication1,
+											author$project$Main$listToString(m.firstList),
+											m.step - 2) : _List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class(
+														(m.step > 1) ? 'spanNum5' : 'spanNum')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(m.firstFactorString)
+													]))
+											]))),
 										A2(
 										elm$html$Html$span,
 										_List_fromArray(
@@ -8269,11 +8429,12 @@ var author$project$Main$view = function (m) {
 											[
 												elm$html$Html$Attributes$id('secondNumber')
 											]),
-										A2(
+										((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? A2(
 											author$project$Main$addingSpanToNumber,
 											elm$core$String$fromInt(
 												A2(elm$core$Maybe$withDefault, 0, m.secondFactor)),
-											1))
+											1) : author$project$Main$addingSpanSmallMultiplication2(
+											author$project$Main$listToString(m.secondList)))
 									])) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? elm$html$Html$text(
 								elm$core$String$fromInt(
 									A2(elm$core$Maybe$withDefault, 0, m.firstFactor))) : elm$html$Html$text('Please enter both factors, that you would like to multiply using Trachtenberg method.'))),
@@ -8299,10 +8460,10 @@ var author$project$Main$view = function (m) {
 									m.prevCarry ? elm$html$Html$text(
 									elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
-							A2(
-								author$project$Main$showAuxCalculations,
+							((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? A2(
+								author$project$Main$showAuxCalculations2,
 								m,
-								elm$core$List$length(m.secondList)))),
+								elm$core$List$length(m.secondList)) : author$project$Main$showAuxCalculations1(m))),
 						(!m.isFinished) ? A2(
 						elm$html$Html$div,
 						_List_fromArray(
@@ -8332,7 +8493,7 @@ var author$project$Main$view = function (m) {
 								elm$html$Html$button,
 								_List_fromArray(
 									[
-										elm$html$Html$Events$onClick(author$project$Main$NextStep)
+										elm$html$Html$Events$onClick(author$project$Main$CheckSize)
 									]),
 								_List_fromArray(
 									[

@@ -23,7 +23,7 @@ addingSpanToNumber word counter =
 
 -->sprememba stevila v string obiki in dodamo <span id="num_"> za vsako stevko
 -->upostevamo kuk zamaknemo spane v levo
-addingSpanToNumberFirst: String -> Int -> Int -> List (Html Msg)
+addingSpanToNumberFirst: String -> Int -> Int -> List(Html Msg)
 addingSpanToNumberFirst word skip counter =
   if word=="" then
     []
@@ -39,6 +39,37 @@ addingSpanToNumberFirst word skip counter =
         List.append (addingSpanToNumberFirst wordLeft skip (counter-1)) ([Html.span[class ("spanNum"++(String.fromInt counter))][text (wordRight)]])
       else
         List.append (addingSpanToNumberFirst wordLeft skip counter) ([Html.span[class "spanNum"][text (wordRight)]])
+
+--> (vecje od obeh podanih stevil)
+--> sprememba stevila v string obiki in dodamo <span id="num_"> za tisto stevilo ki se uposteva pri mnozenju s stevili manjsimi od 12
+--> upostevamo koliko je zamik glede na koraku na katerem smo
+addingSpanSmallMultiplication1: String -> Int -> List(Html Msg)
+addingSpanSmallMultiplication1 word skip =
+  if word=="" then
+    []
+  else
+    let
+          wordLeft = String.dropRight 1 word
+          wordRight = String.right 1 word
+    in
+    if (skip /= 0) then
+      List.append (addingSpanSmallMultiplication1 wordLeft (skip-1)) ([Html.span[class "spanNum"][text (wordRight)]])
+    else
+      List.append (addingSpanSmallMultiplication1 wordLeft (skip-1)) ([Html.span[class "spanNum5"][text (wordRight)]])
+
+--> (manjse od obeh podanih stevil)
+--> sprememba stevila v string obiki in dodamo <span id="spanNum"> za vse stevke
+addingSpanSmallMultiplication2: String  -> List(Html Msg)
+addingSpanSmallMultiplication2 word =
+  if word=="" then
+    []
+  else
+    let
+          wordLeft = String.dropRight 1 word
+          wordRight = String.right 1 word
+    in
+    List.append (addingSpanSmallMultiplication2 wordLeft) ([Html.span[class "spanNum"][text (wordRight)]])
+
 
 
 -->pravila racunanja, ki se pokazejo v aplikaciji
@@ -498,11 +529,18 @@ showNextStepMultiplyingSmallerNs m =
 
 -->pomozne funkcije, za mnozenje z manjsimi stevili(x <= 12)
 -->seznam pomoznih mnozenj
-showAuxCalculations: Model -> Int -> List (Html Msg)
-showAuxCalculations m counter =
+showAuxCalculations2: Model -> Int -> List (Html Msg)
+showAuxCalculations2 m counter =
   case m.stepCalculations of
     (((a, b), res), op) :: t ->
-      (Html.div [class ("spanNum"++(String.fromInt counter))][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations {m | stepCalculations = t} (counter-1))
+      (Html.div [class ("spanNum"++(String.fromInt counter))][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations2 {m | stepCalculations = t} (counter-1))
+    _ -> []
+
+showAuxCalculations1: Model -> List (Html Msg)
+showAuxCalculations1 m =
+  case m.stepCalculations of
+    (((a, b), res), op) :: t ->
+      (Html.div [class "spanNum5"][text ((String.fromInt a) ++ op ++ (String.fromInt b) ++ " = " ++ (String.fromInt res))]) :: (showAuxCalculations1 {m | stepCalculations = t})
     _ -> []
 
 -->pretvorba seznama stevk rezultata v string
@@ -543,6 +581,8 @@ type alias Model =
       currFunFact : String,
     -->indikator ali je izračun končan
       isFinished : Bool,
+    -->indikator ali je prislo do zamenjave
+      isSwitched : Bool,
     --> String z informacijo o operaciji, ki jo uporabnik izvaja
       operation : String,
       -->trenutni odgovor
@@ -563,7 +603,8 @@ type Msg =
     NextStep |
     ChangeOperation String |
     InputAnswer String |
-    CheckAnswer
+    CheckAnswer |
+    CheckSize
 
 update:Msg->Model->(Model,Cmd Msg)
 update msg m =
@@ -575,9 +616,27 @@ update msg m =
       NewFunFact (Err _) ->
         (m,Cmd.none)
       InputFirst text ->
-        ({m | firstFactor = String.toInt text, firstFactorString = text, firstList = intToList (String.toInt text), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0}, Cmd.none)
+        ({m |
+          secondFactor = if (m.isSwitched) then m.firstFactor else m.secondFactor,
+          secondFactorString = if (m.isSwitched) then m.firstFactorString else m.secondFactorString,
+          isSwitched = False,
+          firstFactor = (String.toInt text), firstFactorString = text, firstList = intToList (String.toInt text),
+          secondList =
+            if (m.isSwitched) then
+              m.firstList
+            else
+              if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then
+                (intToList (String.toInt text))
+              else
+                List.reverse (intToList (String.toInt text)) ,
+
+          step = 0, carry = 0, result = [], stepCalculations = [], isFinished = False, prevCarry = 0, wrongAnswers=0}, Cmd.none)
       InputSecond text ->
-        ({m | secondFactor = String.toInt text, secondFactorString = text, firstList = intToList (m.firstFactor), secondList = if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = []}, Cmd.none)
+        ({m |
+          firstFactor = if (m.isSwitched) then m.secondFactor else m.firstFactor,
+          firstFactorString = if (m.isSwitched) then m.secondFactorString else m.firstFactorString,
+          isSwitched = False,
+          secondFactor = String.toInt text, secondFactorString = text, firstList = if (m.isSwitched) then m.secondList else intToList (m.firstFactor), secondList = if (m.isSwitched) then m.firstList else if (m.firstFactor /= Nothing && Maybe.withDefault 0 m.firstFactor <= 12) then (intToList (String.toInt text)) else List.reverse (intToList (String.toInt text)) , step = 0, carry = 0, result = [], isFinished = False, prevCarry = 0, wrongAnswers=0, stepCalculations = []}, Cmd.none)
       NextStep ->
         -->za lazjo kalkulacijo dodamo nicle spredaj in zadaj prvega faktorja, ce ne gre za kvadriranje
         case (m.step, m.operation) of
@@ -599,7 +658,69 @@ update msg m =
               [] -> (m, Cmd.none)
           Nothing ->
             ({m | wrongAnswers = m.wrongAnswers + 1}, Cmd.none)
+      CheckSize ->
+        case (m.step, m.operation) of
+          (0,"multiply") -> update CheckAnswer {m |
+          -->zamenjamo vse, ce pride do tega, da jih moramo zamenjati
+            isSwitched =
+              if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then
+                False
+              else
+                if (Maybe.withDefault 0 m.firstFactor) < (Maybe.withDefault 0 m.secondFactor) then
+                  -->PRIDE DO ZAMENJAVE !!!
+                  True
+                else
+                  False,
 
+            firstFactor =
+              if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then
+                m.firstFactor
+              else
+                if (Maybe.withDefault 0 m.firstFactor) < (Maybe.withDefault 0 m.secondFactor) then
+                  -->PRIDE DO ZAMENJAVE !!!
+                  m.secondFactor
+                else
+                  m.firstFactor,
+
+
+            secondFactor =
+              if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then
+                m.secondFactor
+              else
+                if (Maybe.withDefault 0 m.firstFactor) < (Maybe.withDefault 0 m.secondFactor) then
+                  -->PRIDE DO ZAMENJAVE !!!
+                  m.firstFactor
+                else
+                  m.secondFactor,
+
+
+            secondList =
+              if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then
+                m.secondList
+              else
+                if (Maybe.withDefault 0 m.firstFactor) < (Maybe.withDefault 0 m.secondFactor) then
+                  -->PRIDE DO ZAMENJAVE !!!
+                  m.firstList
+                else
+                  m.secondList,
+
+            step = m.step + 1,
+            rules = updateRules m,
+
+            firstList =
+              if (Maybe.withDefault 0 m.firstFactor > 12 && Maybe.withDefault 0 m.secondFactor > 12) then
+                addZeros ((List.length m.secondList) - 1) (intToList m.firstFactor)
+              else
+                if (Maybe.withDefault 0 m.firstFactor) >= (Maybe.withDefault 0 m.secondFactor) then
+                  m.firstList
+                else
+                  --> PRIDE DO ZAMENJAVE !!!
+                  m.secondList,
+
+            firstFactorString = m.secondFactorString,
+            secondFactorString = m.firstFactorString }
+
+          (_,_) -> update NextStep m
 
 view:Model->Html Msg
 view m =
@@ -613,18 +734,18 @@ view m =
       Html.div [class "calculationDiv"][if ((String.length m.firstFactorString)>10 || (String.length m.secondFactorString)>10) then
             text ("Please make your input values smoller than 11 digits.")
           else if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
-            Html.div [][Html.span [id "firstNumber"](addingSpanToNumberFirst (listToString  m.firstList) (m.step-2) (List.length m.secondList)),
+            Html.div [][Html.span [id "firstNumber"] (if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then (addingSpanToNumberFirst (listToString  m.firstList) (m.step-2) (List.length m.secondList)) else if ((Maybe.withDefault 0 m.secondFactor)>1) then (addingSpanSmallMultiplication1 (listToString m.firstList) (m.step-2)) else [Html.span[class (if m.step>1 then "spanNum5" else "spanNum")][text (m.firstFactorString)]]),
             Html.span [id "operator"][text (" * ")],
-            Html.span [id "secondNumber"](addingSpanToNumber (String.fromInt (Maybe.withDefault 0 m.secondFactor)) 1)]
+            Html.span [id "secondNumber"] (if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then (addingSpanToNumber (String.fromInt (Maybe.withDefault 0 m.secondFactor)) 1) else addingSpanSmallMultiplication2 (listToString m.secondList))]
           else if (m.firstFactor /= Nothing && m.operation == "square") then
             text (String.fromInt (Maybe.withDefault 0 m.firstFactor))
           else
             text "Please enter both factors, that you would like to multiply using Trachtenberg method.",
           if (m.firstFactor /= Nothing && m.operation == "square") then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
-      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (showAuxCalculations m (List.length m.secondList))),
+      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (if ((Maybe.withDefault 0 m.firstFactor)>12 && (Maybe.withDefault 0 m.secondFactor)>12) then (showAuxCalculations2 m (List.length m.secondList)) else showAuxCalculations1 m)),
       if (m.isFinished == False) then Html.div [class "nextStepDiv"][
         if (m.step >= 1) then Html.div [class "answerDiv"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer][] else text ""] else text "",
-        if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep][span [][if (m.step == 0) then text "Begin multiplying" else text "Next step"]] else text ""
+        if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick  CheckSize][span [][if (m.step == 0) then text "Begin multiplying" else text ("Next step") ]] else text ""
         ] else text ""
       ],
       Html.div [class "finishedDiv", if (m.isFinished) then style "display" "block" else style "display" "none"][
@@ -657,6 +778,7 @@ model =
    carry = 0,
    prevCarry = 0,
    isFinished = False,
+   isSwitched = False,
    operation = "multiply",
    wrongAnswers = 0,
    currAnswer = Nothing,
