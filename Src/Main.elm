@@ -237,7 +237,7 @@ addNeigbour m divisor neighbour =
         wantedResult = (List.reverse tRes) ++ [(modBy 10 (hRes + neighbour//divisor))]
         wantedCarry = m.carry + ((hRes + neighbour//divisor) // 10)
       in
-      {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((hRes + 10 * m.prevCarry,neighbour//2), hRes + 10 * m.prevCarry + neighbour//2), " + ")]}
+      {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((hRes + 10 * m.prevCarry,neighbour//divisor), hRes + 10 * m.prevCarry + neighbour//divisor), " + ")]}
     [] -> m
 
 
