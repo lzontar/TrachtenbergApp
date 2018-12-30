@@ -2,7 +2,6 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="src/styles.css"> 
   <title>Main</title>
 </head>
 
@@ -7759,10 +7758,13 @@ var author$project$Main$update = F2(
 								isFinished: false,
 								prevCarry: 0,
 								result: _List_Nil,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
-									elm$core$String$toInt(text)) : elm$core$List$reverse(
-									author$project$Main$intToList(
-										elm$core$String$toInt(text))),
+								secondList: (((!_Utils_eq(
+									elm$core$String$toInt(text),
+									elm$core$Maybe$Nothing)) && (A2(
+									elm$core$Maybe$withDefault,
+									0,
+									elm$core$String$toInt(text)) <= 12)) || ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) <= 12))) ? author$project$Main$intToList(m.secondFactor) : elm$core$List$reverse(
+									author$project$Main$intToList(m.secondFactor)),
 								step: 0,
 								stepCalculations: _List_Nil,
 								wrongAnswers: 0
@@ -7782,7 +7784,12 @@ var author$project$Main$update = F2(
 								secondFactor: elm$core$String$toInt(text),
 								secondFactorString: text,
 								secondInput: text,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
+								secondList: (((!_Utils_eq(
+									elm$core$String$toInt(text),
+									elm$core$Maybe$Nothing)) && (A2(
+									elm$core$Maybe$withDefault,
+									0,
+									elm$core$String$toInt(text)) <= 12)) || ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12))) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
 										elm$core$String$toInt(text))),
