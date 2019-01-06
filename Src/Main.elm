@@ -88,7 +88,7 @@ updateRules mo=
         [5, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Add 25 to the units digit."]]
         [_, 5] -> Html.div [class "rulesDiv"][Html.div [][text "1. Multiply the tens digit by the next larger digit."]]
         [_, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Do an 'open cross-product', where you multiply the first and last digits then double the result."], Html.div [][text "1. Square the tens digit"]]
-        [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."], Html.div [][text "1. Square the tens digit"]]
+        [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."], Html.div [][text "3. Square the tens digit"]]
         _-> Html.div [][]
     "multiply" ->
       case (mo.firstFactor, mo.secondFactor) of
@@ -257,7 +257,7 @@ showNextStepSquare m =
                   let
                     multiplication = z * z + m.carry
                   in
-                {m | step = m.step + 1, result = m.result ++ intToList (Just (multiplication)), carry = multiplication // 10, stepCalculations = [(((z, z), z * z), " * "), (((z * z, m.carry), z * z + m.carry), " + ")], prevCarry = m.carry}
+                {m | step = m.step + 1, result = m.result ++ intToList (Just (multiplication)), carry = multiplication // 10, stepCalculations = [(((z, z), z * z), " * "), (((z * z, m.carry), z * z + m.carry), " + ")], prevCarry = m.carry, isFinished = True}
               _ -> m
           _ -> m
     _->
@@ -664,14 +664,17 @@ update msg m =
           _->
             case m.currAnswer of
               Just n ->
-                case (List.reverse m.result) of
+                case (List.reverse m.stepCalculations) of
                   (h::t) ->
-                    ({m | wrongAnswers = m.wrongAnswers + (if ((h + m.carry * 10) == n) then 0 else 1), answerInput = ""}, Cmd.none)
+                    ({m | wrongAnswers = m.wrongAnswers + (if (Tuple.second (Tuple.first h)== n) then 0 else 1), answerInput = ""}, Cmd.none)
                   [] -> ({m | answerInput = ""}, Cmd.none)
               Nothing ->
                 ({m | wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
       Restart ->
-        (model, Cmd.none)
+        let
+          n = model
+        in
+        ({n | operation = m.operation}, Cmd.none)
       Finish ->
         ({m | showReward = True}, Cmd.none)
 
@@ -709,10 +712,10 @@ view m =
     Html.div [class "mainDiv"][
       if (m.showReward == False) then Html.div [class "nextStepDiv", style "display" "inline-block", style "float" "right"][
         if (m.step >= 1 && m.isFinished == False) then Html.div [class "answerDiv", style "display" "inline-block"][text "What is the result of auxiliary calculations?", if (m.isFinished == False && m.firstFactor /= Nothing && ((m.secondFactor /= Nothing) || (m.operation == "square"))) then input [onInput InputAnswer, value m.answerInput, style "display" "inline-block"][] else text "", if (m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square") && m.isFinished == False) then button [onClick NextStep, style "display" "inline-block"][span [][text "Next step"]] else text ""]
-        else if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.step == 0 && m.firstFactor /= Nothing && (m.secondFactor /= Nothing || m.operation == "square")) then button [onClick NextStep, style "display" "inline-block"][span [][text "Begin multiplication"]] else if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.isFinished == True) then button [onClick Finish, style "display" "inline-block"][span [][text "Finish"]] else text ""] else text "",
+        else if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.step == 0 && m.firstFactor /= Nothing && (m.secondFactor /= Nothing || (m.operation == "square" && List.length m.firstList <= 3))) then button [onClick NextStep, style "display" "inline-block"][span [][text "Begin multiplication"]] else if (((String.length m.firstFactorString)<11 && (String.length m.secondFactorString)<11) && m.isFinished == True) then button [onClick Finish, style "display" "inline-block"][span [][text "Finish"]] else text ""] else text "",
 
       Html.div [class "calculationDiv"][if ((String.length m.firstFactorString)>10 || (String.length m.secondFactorString)>10) then
-            text ("Please make your input values smoller than 11 digits.")
+            text ("Please input smaller numbers than 11-digit numbers.")
           else if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
             Html.div [][Html.span [id "firstNumber"](if (switch) then (if (biggerThen1) then (addingSpanSmallMultiplication1 (listToString m.secondList) (m.step-2)) else ([Html.span[class (if m.step>1 then "spanNum5" else "spanNum")][text (m.secondFactorString)]])) else (addingSpanToNumberFirst (listToString  m.firstList) (m.step-2) (List.length m.secondList))),
             Html.span [id "operator"][text (" * ")],
@@ -722,7 +725,7 @@ view m =
           else
             (text "Please enter both factors, that you would like to multiply using Trachtenberg method."),
           if (m.firstFactor /= Nothing && m.operation == "square" && (List.length m.firstList <= 3)) then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
-      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text (String.fromInt m.prevCarry) else text ""] ++ (if (biggerThen12) then (showAuxCalculations2 m (List.length m.secondList)) else showAuxCalculations1 m))
+      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text ("Carry = " ++ (String.fromInt m.prevCarry)) else text ""] ++ (if (biggerThen12) then (showAuxCalculations2 m (List.length m.secondList)) else showAuxCalculations1 m))
       ],
       Html.div [class "finishedDiv", if (m.showReward) then style "display" "block" else style "display" "none"][
         Html.img [src "https://www.freeiconspng.com/uploads/close-button-png-27.png", width 50, height 50, class "closeImg", onClick Restart][],

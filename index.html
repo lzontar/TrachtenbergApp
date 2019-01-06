@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="src/styles.css"> 
+  <link rel="stylesheet" href="Src/styles.css">
   <title>Main</title>
 </head>
 
@@ -6341,6 +6341,7 @@ var author$project$Main$showNextStepSquare = function (m) {
 							m,
 							{
 								carry: (multiplication / 10) | 0,
+								isFinished: true,
 								prevCarry: m.carry,
 								result: _Utils_ap(
 									m.result,
@@ -6512,7 +6513,7 @@ var author$project$Main$updateRules = function (mo) {
 											_List_Nil,
 											_List_fromArray(
 												[
-													elm$html$Html$text('1. Square the tens digit')
+													elm$html$Html$text('3. Square the tens digit')
 												]))
 										]));
 							} else {
@@ -7759,10 +7760,13 @@ var author$project$Main$update = F2(
 								isFinished: false,
 								prevCarry: 0,
 								result: _List_Nil,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
-									elm$core$String$toInt(text)) : elm$core$List$reverse(
-									author$project$Main$intToList(
-										elm$core$String$toInt(text))),
+								secondList: (((!_Utils_eq(
+									elm$core$String$toInt(text),
+									elm$core$Maybe$Nothing)) && (A2(
+									elm$core$Maybe$withDefault,
+									0,
+									elm$core$String$toInt(text)) <= 12)) || ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) <= 12))) ? author$project$Main$intToList(m.secondFactor) : elm$core$List$reverse(
+									author$project$Main$intToList(m.secondFactor)),
 								step: 0,
 								stepCalculations: _List_Nil,
 								wrongAnswers: 0
@@ -7782,7 +7786,12 @@ var author$project$Main$update = F2(
 								secondFactor: elm$core$String$toInt(text),
 								secondFactorString: text,
 								secondInput: text,
-								secondList: ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12)) ? author$project$Main$intToList(
+								secondList: (((!_Utils_eq(
+									elm$core$String$toInt(text),
+									elm$core$Maybe$Nothing)) && (A2(
+									elm$core$Maybe$withDefault,
+									0,
+									elm$core$String$toInt(text)) <= 12)) || ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) <= 12))) ? author$project$Main$intToList(
 									elm$core$String$toInt(text)) : elm$core$List$reverse(
 									author$project$Main$intToList(
 										elm$core$String$toInt(text))),
@@ -7865,7 +7874,7 @@ var author$project$Main$update = F2(
 						var _n3 = m.currAnswer;
 						if (_n3.$ === 'Just') {
 							var n = _n3.a;
-							var _n4 = elm$core$List$reverse(m.result);
+							var _n4 = elm$core$List$reverse(m.stepCalculations);
 							if (_n4.b) {
 								var h = _n4.a;
 								var t = _n4.b;
@@ -7874,7 +7883,7 @@ var author$project$Main$update = F2(
 										m,
 										{
 											answerInput: '',
-											wrongAnswers: m.wrongAnswers + (_Utils_eq(h + (m.carry * 10), n) ? 0 : 1)
+											wrongAnswers: m.wrongAnswers + (_Utils_eq(h.a.b, n) ? 0 : 1)
 										}),
 									elm$core$Platform$Cmd$none);
 							} else {
@@ -7893,7 +7902,12 @@ var author$project$Main$update = F2(
 						}
 					}
 				case 'Restart':
-					return _Utils_Tuple2(author$project$Main$model, elm$core$Platform$Cmd$none);
+					var n = author$project$Main$model;
+					return _Utils_Tuple2(
+						_Utils_update(
+							n,
+							{operation: m.operation}),
+						elm$core$Platform$Cmd$none);
 				default:
 					return _Utils_Tuple2(
 						_Utils_update(
@@ -8374,7 +8388,7 @@ var author$project$Main$view = function (m) {
 														elm$html$Html$text('Next step')
 													]))
 											])) : elm$html$Html$text('')
-									])) : ((((elm$core$String$length(m.firstFactorString) < 11) && (elm$core$String$length(m.secondFactorString) < 11)) && ((!m.step) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || (m.operation === 'square'))))) ? A2(
+									])) : ((((elm$core$String$length(m.firstFactorString) < 11) && (elm$core$String$length(m.secondFactorString) < 11)) && ((!m.step) && ((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) || ((m.operation === 'square') && (elm$core$List$length(m.firstList) <= 3)))))) ? A2(
 								elm$html$Html$button,
 								_List_fromArray(
 									[
@@ -8416,7 +8430,7 @@ var author$project$Main$view = function (m) {
 							]),
 						_List_fromArray(
 							[
-								((elm$core$String$length(m.firstFactorString) > 10) || (elm$core$String$length(m.secondFactorString) > 10)) ? elm$html$Html$text('Please make your input values smoller than 11 digits.') : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
+								((elm$core$String$length(m.firstFactorString) > 10) || (elm$core$String$length(m.secondFactorString) > 10)) ? elm$html$Html$text('Please input smaller numbers than 11-digit numbers.') : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && ((!_Utils_eq(m.secondFactor, elm$core$Maybe$Nothing)) && (m.operation === 'multiply'))) ? A2(
 								elm$html$Html$div,
 								_List_Nil,
 								_List_fromArray(
@@ -8523,7 +8537,7 @@ var author$project$Main$view = function (m) {
 							_List_fromArray(
 								[
 									m.prevCarry ? elm$html$Html$text(
-									elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
+									'Carry = ' + elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
 							biggerThen12 ? A2(
 								author$project$Main$showAuxCalculations2,
