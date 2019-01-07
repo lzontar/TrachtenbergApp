@@ -664,12 +664,11 @@ update msg m =
           _->
             case m.currAnswer of
               Just n ->
-                case (List.reverse m.stepCalculations) of
-                  (h::t) ->
-                    ({m | wrongAnswers = m.wrongAnswers + (if (Tuple.second (Tuple.first h)== n) then 0 else 1), answerInput = ""}, Cmd.none)
-                  [] -> ({m | answerInput = ""}, Cmd.none)
-              Nothing ->
-                ({m | wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
+                case (List.reverse m.stepCalculations, List.reverse m.result) of
+                  ((h::t), (h2::t2)) -> ({m |  currAnswer = Nothing, wrongAnswers = m.wrongAnswers + (if (Maybe.withDefault 0 m.firstFactor>12 && Maybe.withDefault 0 m.secondFactor>12) then (if ((h2 + m.carry * 10) == n) then 0 else 1) else (if (Tuple.second (Tuple.first h)== n) then 0 else 1)), answerInput = ""}, Cmd.none)
+                  ([], _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
+                  (_, _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
+              Nothing -> ({m | currAnswer = Nothing, wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
       Restart ->
         let
           n = model
