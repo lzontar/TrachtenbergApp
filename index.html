@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="src/styles.css">
+  <link rel="stylesheet" href="Src/styles.css">
   <title>Main</title>
 </head>
 
@@ -5453,7 +5453,7 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					{
 						isFinished: (_Utils_eq(
 							n.step,
-							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
 							n.step,
 							elm$core$List$length(lBigger)) > 0),
 						step: n.step + 1
@@ -6118,7 +6118,12 @@ var author$project$Main$showNextStepSquare = function (m) {
 													_Utils_Tuple2(
 														_Utils_Tuple2(x, x),
 														x * x),
-													' * ')
+													' * '),
+													_Utils_Tuple2(
+													_Utils_Tuple2(
+														_Utils_Tuple2(x * x, m.carry),
+														(x * x) + m.carry),
+													' + ')
 												])
 										});
 								case 2:
@@ -6145,7 +6150,12 @@ var author$project$Main$showNextStepSquare = function (m) {
 													_Utils_Tuple2(
 														_Utils_Tuple2(x * y, 2),
 														(x * y) * 2),
-													' * ')
+													' * '),
+													_Utils_Tuple2(
+													_Utils_Tuple2(
+														_Utils_Tuple2((x * y) * 2, m.carry),
+														((x * y) * 2) + m.carry),
+													' + ')
 												])
 										});
 								case 3:
@@ -6167,7 +6177,12 @@ var author$project$Main$showNextStepSquare = function (m) {
 													_Utils_Tuple2(
 														_Utils_Tuple2(y, y),
 														y * y),
-													' * ')
+													' * '),
+													_Utils_Tuple2(
+													_Utils_Tuple2(
+														_Utils_Tuple2(y * y, m.carry),
+														(y * y) + m.carry),
+													' + ')
 												])
 										});
 								case 4:
@@ -6175,11 +6190,20 @@ var author$project$Main$showNextStepSquare = function (m) {
 										m,
 										{
 											isFinished: true,
+											prevCarry: m.carry,
 											result: _Utils_ap(
 												m.result,
 												m.carry ? _List_fromArray(
 													[m.carry]) : _List_Nil),
-											step: m.step + 1
+											step: m.step + 1,
+											stepCalculations: _List_fromArray(
+												[
+													_Utils_Tuple2(
+													_Utils_Tuple2(
+														_Utils_Tuple2(0, m.carry),
+														0 + m.carry),
+													' + ')
+												])
 										});
 								default:
 									return m;
@@ -6215,7 +6239,12 @@ var author$project$Main$showNextStepSquare = function (m) {
 										_Utils_Tuple2(
 											_Utils_Tuple2(x, x),
 											x * x),
-										' * ')
+										' * '),
+										_Utils_Tuple2(
+										_Utils_Tuple2(
+											_Utils_Tuple2(x * x, m.carry),
+											(x * x) + m.carry),
+										' + ')
 									])
 							});
 					case 2:
@@ -6404,7 +6433,7 @@ var author$project$Main$updateRules = function (mo) {
 								]));
 					} else {
 						if (!_n1.b.b.b) {
-							if (_n1.a === 5) {
+							if (_n1.b.a === 5) {
 								var _n2 = _n1.b;
 								return A2(
 									elm$html$Html$div,
@@ -6430,7 +6459,7 @@ var author$project$Main$updateRules = function (mo) {
 												]))
 										]));
 							} else {
-								if (_n1.b.a === 5) {
+								if (_n1.a === 5) {
 									var _n3 = _n1.b;
 									return A2(
 										elm$html$Html$div,
@@ -6445,7 +6474,14 @@ var author$project$Main$updateRules = function (mo) {
 												_List_Nil,
 												_List_fromArray(
 													[
-														elm$html$Html$text('1. Multiply the tens digit by the next larger digit.')
+														elm$html$Html$text('1. Square the units digit.')
+													])),
+												A2(
+												elm$html$Html$div,
+												_List_Nil,
+												_List_fromArray(
+													[
+														elm$html$Html$text('2. Multiply the tens digit by the next larger digit.')
 													]))
 											]));
 								} else {
@@ -7891,7 +7927,7 @@ var author$project$Main$update = F2(
 											{
 												answerInput: '',
 												currAnswer: elm$core$Maybe$Nothing,
-												wrongAnswers: m.wrongAnswers + (((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) ? (_Utils_eq(h2 + (m.carry * 10), n) ? 0 : 1) : (_Utils_eq(h.a.b, n) ? 0 : 1))
+												wrongAnswers: m.wrongAnswers + ((((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) && (m.operation !== 'square')) ? (_Utils_eq(h2 + (m.carry * 10), n) ? 0 : 1) : (_Utils_eq(h.a.b, n) ? 0 : 1))
 											}),
 										elm$core$Platform$Cmd$none);
 								} else {
@@ -8551,7 +8587,7 @@ var author$project$Main$view = function (m) {
 						_Utils_ap(
 							_List_fromArray(
 								[
-									m.prevCarry ? elm$html$Html$text(
+									(m.step > 1) ? elm$html$Html$text(
 									'Carry = ' + elm$core$String$fromInt(m.prevCarry)) : elm$html$Html$text('')
 								]),
 							biggerThen12 ? A2(

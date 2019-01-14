@@ -85,8 +85,8 @@ updateRules mo=
     "square" ->
       case mo.firstList of
         [_] -> Html.div [class "rulesDiv"][text "Just square it, it's quite simple..."]
-        [5, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Add 25 to the units digit."]]
-        [_, 5] -> Html.div [class "rulesDiv"][Html.div [][text "1. Multiply the tens digit by the next larger digit."]]
+        [_, 5] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Add 25 to the units digit."]]
+        [5, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Multiply the tens digit by the next larger digit."]]
         [_, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Do an 'open cross-product', where you multiply the first and last digits then double the result."], Html.div [][text "1. Square the tens digit"]]
         [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."], Html.div [][text "3. Square the tens digit"]]
         _-> Html.div [][]
@@ -213,19 +213,19 @@ showNextStepSquare m =
         [x, y] ->
           case m.step of
             1 ->
-              {m | step = m.step + 1, result = intToList (Just (modBy 10 (x*x))), carry = x*x // 10, stepCalculations = [(((x, x), x * x), " * ")]}
+              {m | step = m.step + 1, result = intToList (Just (modBy 10 (x*x))), carry = x*x // 10, stepCalculations = [(((x, x), x * x), " * "), (((x * x, m.carry), x * x + m.carry), " + ")]}
             2 ->
               let
                 multiplication = m.carry + x * y * 2
               in
-              {m | step = m.step + 1, result = m.result ++ intToList (Just (modBy 10 multiplication)), carry = multiplication // 10, stepCalculations = [(((x, y), x * y), " * "), (((x*y,2),x*y*2), " * ")], prevCarry = m.carry}
+              {m | step = m.step + 1, result = m.result ++ intToList (Just (modBy 10 multiplication)), carry = multiplication // 10, stepCalculations = [(((x, y), x * y), " * "), (((x*y,2),x*y*2), " * "), (((x*y*2, m.carry), x * y * 2 + m.carry), " + ")], prevCarry = m.carry}
             3 ->
               let
                 multiplication = m.carry + y * y
               in
-              {m | step = m.step + 1, result = m.result ++ intToList (Just (modBy 10 multiplication)), carry = multiplication // 10, stepCalculations = [(((y, y), y * y), " * ")], prevCarry = m.carry}
+              {m | step = m.step + 1, result = m.result ++ intToList (Just (modBy 10 multiplication)), carry = multiplication // 10, stepCalculations = [(((y, y), y * y), " * "), (((y*y, m.carry), y * y + m.carry), " + ")], prevCarry = m.carry}
             4 ->
-              {m | step = m.step + 1, result = m.result ++ (if (m.carry /= 0) then [m.carry] else []), isFinished = True}
+              {m | step = m.step + 1, result = m.result ++ (if (m.carry /= 0) then [m.carry] else []),stepCalculations = [(((0, m.carry), 0 + m.carry), " + ")], isFinished = True, prevCarry = m.carry}
             _ -> m
         _ ->
           m
@@ -235,7 +235,7 @@ showNextStepSquare m =
           [x,y,z] ->
             case m.step of
               1 ->
-                {m | step = m.step + 1, result = intToList (Just (modBy 10 (x * x))), carry = (x * x) // 10, stepCalculations = [(((x, x), x * x), " * ")]}
+                {m | step = m.step + 1, result = intToList (Just (modBy 10 (x * x))), carry = (x * x) // 10, stepCalculations = [(((x, x), x * x), " * "), (((x * x, m.carry), x * x + m.carry), " + ")]}
               2 ->
                 let
                   multiplication = x * y * 2 + m.carry
@@ -362,7 +362,7 @@ showNextStepMultiplyingSmallerNs m =
               doubled = doubleTheNumber {m | result = List.reverse (numAtIx :: List.reverse m.result),stepCalculations = [], prevCarry = m.carry, carry = 0}
               n = addCarry doubled
             in
-            {n | step = n.step + 1,isFinished = (n.step == (List.length lBigger) && m.carry == 0) || (n.step > (List.length lBigger))}
+            {n | step = n.step + 1,isFinished =  (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger))}
         3->
           if (m.step == 1) then
             let
@@ -665,7 +665,7 @@ update msg m =
             case m.currAnswer of
               Just n ->
                 case (List.reverse m.stepCalculations, List.reverse m.result) of
-                  ((h::t), (h2::t2)) -> ({m |  currAnswer = Nothing, wrongAnswers = m.wrongAnswers + (if (Maybe.withDefault 0 m.firstFactor>12 && Maybe.withDefault 0 m.secondFactor>12) then (if ((h2 + m.carry * 10) == n) then 0 else 1) else (if (Tuple.second (Tuple.first h)== n) then 0 else 1)), answerInput = ""}, Cmd.none)
+                  ((h::t), (h2::t2)) -> ({m |  currAnswer = Nothing, wrongAnswers = m.wrongAnswers + (if ((Maybe.withDefault 0 m.firstFactor>12 && Maybe.withDefault 0 m.secondFactor>12) && m.operation /= "square") then (if ((h2 + m.carry * 10) == n) then 0 else 1) else (if (Tuple.second (Tuple.first h)== n) then 0 else 1)), answerInput = ""}, Cmd.none)
                   ([], _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
                   (_, _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
               Nothing -> ({m | currAnswer = Nothing, wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
@@ -724,7 +724,7 @@ view m =
           else
             (text "Please enter both factors, that you would like to multiply using Trachtenberg method."),
           if (m.firstFactor /= Nothing && m.operation == "square" && (List.length m.firstList <= 3)) then (sup [][text "2"]) else (text ""), if(m.result /= []) then Html.text (" = " ++ (if (m.isFinished == True) then (resultToString m.result) else listToString m.result)) else text ""],
-      Html.div [class "auxCalcDiv"]([if (m.prevCarry /= 0) then text ("Carry = " ++ (String.fromInt m.prevCarry)) else text ""] ++ (if (biggerThen12) then (showAuxCalculations2 m (List.length m.secondList)) else showAuxCalculations1 m))
+      Html.div [class "auxCalcDiv"]([if (m.step > 1) then text ("Carry = " ++ (String.fromInt m.prevCarry)) else text ""] ++ (if (biggerThen12) then (showAuxCalculations2 m (List.length m.secondList)) else showAuxCalculations1 m))
       ],
       Html.div [class "finishedDiv", if (m.showReward) then style "display" "block" else style "display" "none"][
         Html.img [src "https://www.freeiconspng.com/uploads/close-button-png-27.png", width 50, height 50, class "closeImg", onClick Restart][],
