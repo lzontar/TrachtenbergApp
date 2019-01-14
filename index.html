@@ -5205,8 +5205,8 @@ var author$project$Main$addFiveIfOdd = F2(
 								[
 									_Utils_Tuple2(
 									_Utils_Tuple2(
-										_Utils_Tuple2(h, 5),
-										h + 5),
+										_Utils_Tuple2(h + (m.carry * 10), 5),
+										(h + (m.carry * 10)) + 5),
 									' + ')
 								]))
 					});
@@ -5241,8 +5241,8 @@ var author$project$Main$addNeigbour = F3(
 							[
 								_Utils_Tuple2(
 								_Utils_Tuple2(
-									_Utils_Tuple2(hRes + (10 * m.prevCarry), (neighbour / divisor) | 0),
-									(hRes + (10 * m.prevCarry)) + ((neighbour / divisor) | 0)),
+									_Utils_Tuple2(hRes + (10 * m.carry), (neighbour / divisor) | 0),
+									(hRes + (10 * m.carry)) + ((neighbour / divisor) | 0)),
 								' + ')
 							]))
 				});
@@ -5538,9 +5538,9 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 							n,
 							{
 								isFinished: (_Utils_eq(
-									n.step - 1,
-									elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-									n.step - 1,
+									n.step,
+									elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+									n.step,
 									elm$core$List$length(lBigger)) > 0),
 								step: n.step + 1
 							});
@@ -5659,10 +5659,10 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					n,
 					{
 						isFinished: (_Utils_eq(
-							n.step - 1,
-							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-							n.step - 1,
-							elm$core$List$length(lBigger)) > 0),
+							n.step,
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+							n.step,
+							elm$core$List$length(lBigger) + 1) > 0),
 						step: n.step + 1
 					});
 			case 6:
@@ -5690,10 +5690,10 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					n,
 					{
 						isFinished: (_Utils_eq(
-							n.step - 1,
-							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-							n.step - 1,
-							elm$core$List$length(lBigger)) > 0),
+							n.step,
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+							n.step,
+							elm$core$List$length(lBigger) + 1) > 0),
 						step: n.step + 1
 					});
 			case 7:
@@ -5720,10 +5720,10 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					n,
 					{
 						isFinished: (_Utils_eq(
-							n.step - 1,
-							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-							n.step - 1,
-							elm$core$List$length(lBigger)) > 0),
+							n.step,
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+							n.step,
+							elm$core$List$length(lBigger) + 1) > 0),
 						step: n.step + 1
 					});
 			case 8:
@@ -5772,8 +5772,8 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 									stepCalculations: _List_Nil
 								}),
 							neighbour,
-							1,
-							2);
+							2,
+							1);
 						var n = reducedM;
 						return _Utils_update(
 							n,
@@ -5925,9 +5925,11 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 				return _Utils_update(
 					n,
 					{
-						isFinished: _Utils_cmp(
-							n.step - 1,
-							elm$core$List$length(lBigger)) > -1,
+						isFinished: (_Utils_eq(
+							n.step,
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+							n.step,
+							elm$core$List$length(lBigger) + 1) > 0),
 						step: n.step + 1
 					});
 			case 12:
@@ -5953,10 +5955,10 @@ var author$project$Main$showNextStepMultiplyingSmallerNs = function (m) {
 					n,
 					{
 						isFinished: (_Utils_eq(
-							n.step - 1,
-							elm$core$List$length(lBigger)) && (!m.carry)) || (_Utils_cmp(
-							n.step - 1,
-							elm$core$List$length(lBigger)) > 0),
+							n.step,
+							elm$core$List$length(lBigger) + 1) && (!m.carry)) || (_Utils_cmp(
+							n.step,
+							elm$core$List$length(lBigger) + 1) > 0),
 						step: n.step + 1
 					});
 			default:
@@ -6513,7 +6515,7 @@ var author$project$Main$updateRules = function (mo) {
 												_List_Nil,
 												_List_fromArray(
 													[
-														elm$html$Html$text('1. Square the tens digit')
+														elm$html$Html$text('3. Square the tens digit')
 													]))
 											]));
 								}
@@ -6542,14 +6544,14 @@ var author$project$Main$updateRules = function (mo) {
 											_List_Nil,
 											_List_fromArray(
 												[
-													elm$html$Html$text('2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit.')
+													elm$html$Html$text('2. Make a cross-product of unit digit and hundreds and double it. ')
 												])),
 											A2(
 											elm$html$Html$div,
 											_List_Nil,
 											_List_fromArray(
 												[
-													elm$html$Html$text('3. Square the tens digit')
+													elm$html$Html$text('3. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit.')
 												]))
 										]));
 							} else {
@@ -6810,7 +6812,7 @@ var author$project$Main$updateRules = function (mo) {
 									_List_Nil,
 									_List_fromArray(
 										[
-											elm$html$Html$text('1. Use the neighbor.')
+											elm$html$Html$text('1. Multiplying with 10 is quite simple...')
 										]))
 								]));
 					case 11:

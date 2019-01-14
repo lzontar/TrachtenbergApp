@@ -87,8 +87,8 @@ updateRules mo=
         [_] -> Html.div [class "rulesDiv"][text "Just square it, it's quite simple..."]
         [_, 5] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Add 25 to the units digit."]]
         [5, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Multiply the tens digit by the next larger digit."]]
-        [_, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Do an 'open cross-product', where you multiply the first and last digits then double the result."], Html.div [][text "1. Square the tens digit"]]
-        [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."], Html.div [][text "3. Square the tens digit"]]
+        [_, _] -> Html.div [class "rulesDiv"][Html.div [][text "1. Square the units digit."], Html.div [][text "2. Do an 'open cross-product', where you multiply the first and last digits then double the result."], Html.div [][text "3. Square the tens digit"]]
+        [_, _ , _] ->Html.div [class "rulesDiv"][Html.div [][text "1. Ignore the hundreds digit and square the tens and unit digits using the method for squaring 2 digit numbers."], Html.div [][text "2. Make a cross-product of unit digit and hundreds and double it. "], Html.div [][text "3. On the Hundreds and tens digits do another squaring 2 digit number but this time omit the first step of squaring the units digit."]]
         _-> Html.div [][]
     "multiply" ->
       case (mo.firstFactor, mo.secondFactor) of
@@ -108,7 +108,7 @@ updateRules mo=
             7 -> Html.div [class "rulesDiv"][Html.div [][text "1. Double the number and add 5 if the number is odd, and add “half” the neighbor."]]
             8 ->Html.div [class "rulesDiv"][Html.div [][text "1. First step: Subtract from 10 and double."], Html.div [][text "2. Middle steps: Subtract from 9 and double what you get, then add the neighbor."], Html.div [][text "3. Last step: Subtract two from the left-hand figure of the multiplicand."]]
             9 -> Html.div [class "rulesDiv"][Html.div [][text "1. First step: subtract from 10"], Html.div [][text "2. Middle steps: Subtract from 9 and add the neighbor."], Html.div [][text "3. Last step: Reduce the left hand digit of multiplicand by 1."]]
-            10 -> Html.div [class "rulesDiv"][Html.div [][text "1. Use the neighbor."]]
+            10 -> Html.div [class "rulesDiv"][Html.div [][text "1. Multiplying with 10 is quite simple..."]]
             11 -> Html.div [class "rulesDiv"][Html.div [][text "1. Add the neighbor."]]
             12 -> Html.div [class "rulesDiv"][Html.div [][text "1. Double each number in turn and add its neighbor."]]
             _ -> Html.div [class "rulesDiv"][Html.div [][text "1. When multiplying by a multiplier of any length, put as many zeros before the multiplicand as there are digits in the multiplier."],Html.div [][text "2. We make n (number of digits in multiplier) auxiliary multiplications, where we multiply inner digit of multiplier with inner digit of multiplicand, outer digit of multiplier with outer digit of multiplicand and so on."], Html.div [][text "3. Move the inner digit of multiplicand in auxiliary multiplications to the left for one digit."]]
@@ -295,7 +295,7 @@ addFiveIfOdd m num=
           wantedResult = (List.reverse t) ++ [(modBy 10 (h + 5))]
           wantedCarry = m.carry + ((h + 5) // 10)
         in
-        {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((h,5), h + 5), " + ")]}
+        {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((h + m.carry * 10,5), h + m.carry * 10 + 5), " + ")]}
       else
         m
     [] -> m
@@ -308,7 +308,7 @@ addNeigbour m divisor neighbour =
         wantedResult = (List.reverse tRes) ++ [(modBy 10 (hRes + neighbour//divisor))]
         wantedCarry = m.carry + ((hRes + neighbour//divisor) // 10)
       in
-      {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((hRes + 10 * m.prevCarry,neighbour//divisor), hRes + 10 * m.prevCarry + neighbour//divisor), " + ")]}
+      {m | carry = wantedCarry, result = wantedResult, stepCalculations = m.stepCalculations ++ [(((hRes + 10 * m.carry,neighbour//divisor), hRes + 10 * m.carry + neighbour//divisor), " + ")]}
     [] -> m
 
 
@@ -393,7 +393,7 @@ showNextStepMultiplyingSmallerNs m =
               addedCarryM = addCarry addedNeighbourM
               n = addedCarryM
             in
-            {n | step = n.step + 1,isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+            {n | step = n.step + 1,isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger))}
         4->
           if (m.step == 1) then
             let
@@ -432,7 +432,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedFiveIfOddM
             n = addedCarryM
           in
-          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+          {n | step = n.step + 1, isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger) + 1)}
         6->
           let
             numAtIx = intInList (m.step) lBigger
@@ -442,7 +442,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+          {n | step = n.step + 1, isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger) + 1)}
         7->
           let
             numAtIx = intInList (m.step) lBigger
@@ -453,7 +453,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+          {n | step = n.step + 1, isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger) + 1)}
         8->
           if (m.step == 1) then
             let
@@ -468,7 +468,7 @@ showNextStepMultiplyingSmallerNs m =
             let
               neighbour = intInList (m.step - 1) lBigger
               numAtIx = intInList (m.step) lBigger
-              reducedM = reduceLeftHandDigit {m | result = List.reverse (0 :: List.reverse m.result),stepCalculations = [], prevCarry = m.carry, carry = 0} neighbour 1 2
+              reducedM = reduceLeftHandDigit {m | result = List.reverse (0 :: List.reverse m.result),stepCalculations = [], prevCarry = m.carry, carry = 0} neighbour 2 1
               n = reducedM
             in
             {n | step = n.step + 1, isFinished = True}
@@ -520,7 +520,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1, isFinished = (n.step - 1 >= List.length lBigger)}
+          {n | step = n.step + 1, isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger) + 1)}
         12->
           let
             numAtIx = intInList (m.step) lBigger
@@ -530,7 +530,7 @@ showNextStepMultiplyingSmallerNs m =
             addedCarryM = addCarry addedNeighbourM
             n = addedCarryM
           in
-          {n | step = n.step + 1, isFinished = (n.step - 1 == List.length lBigger && m.carry == 0) || (n.step - 1 > List.length lBigger)}
+          {n | step = n.step + 1, isFinished = (n.step == (List.length lBigger) + 1 && m.carry == 0) || (n.step > (List.length lBigger) + 1)}
         _->m
     _-> m
 
