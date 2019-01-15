@@ -1,8 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="Src/styles.css">
+  <meta charset="UTF-8"><link rel="stylesheet" href="src/styles.css">
   <title>Main</title>
 </head>
 
@@ -7915,30 +7914,22 @@ var author$project$Main$update = F2(
 							var _n4 = _Utils_Tuple2(
 								elm$core$List$reverse(m.stepCalculations),
 								elm$core$List$reverse(m.result));
-							if (_n4.a.b) {
-								if (_n4.b.b) {
-									var _n5 = _n4.a;
-									var h = _n5.a;
-									var t = _n5.b;
-									var _n6 = _n4.b;
-									var h2 = _n6.a;
-									var t2 = _n6.b;
-									return _Utils_Tuple2(
-										_Utils_update(
-											m,
-											{
-												answerInput: '',
-												currAnswer: elm$core$Maybe$Nothing,
-												wrongAnswers: m.wrongAnswers + ((((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) && (m.operation !== 'square')) ? (_Utils_eq(h2 + (m.carry * 10), n) ? 0 : 1) : (_Utils_eq(h.a.b, n) ? 0 : 1))
-											}),
-										elm$core$Platform$Cmd$none);
-								} else {
-									return _Utils_Tuple2(
-										_Utils_update(
-											m,
-											{answerInput: '', currAnswer: elm$core$Maybe$Nothing}),
-										elm$core$Platform$Cmd$none);
-								}
+							if (_n4.a.b && _n4.b.b) {
+								var _n5 = _n4.a;
+								var h = _n5.a;
+								var t = _n5.b;
+								var _n6 = _n4.b;
+								var h2 = _n6.a;
+								var t2 = _n6.b;
+								return _Utils_Tuple2(
+									_Utils_update(
+										m,
+										{
+											answerInput: '',
+											currAnswer: elm$core$Maybe$Nothing,
+											wrongAnswers: m.wrongAnswers + ((((A2(elm$core$Maybe$withDefault, 0, m.firstFactor) > 12) && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) > 12)) && (m.operation !== 'square')) ? (_Utils_eq(h2 + (m.carry * 10), n) ? 0 : 1) : (_Utils_eq(h.a.b, n) ? 0 : 1))
+										}),
+									elm$core$Platform$Cmd$none);
 							} else {
 								return _Utils_Tuple2(
 									_Utils_update(
@@ -8494,7 +8485,7 @@ var author$project$Main$view = function (m) {
 											[
 												elm$html$Html$Attributes$id('firstNumber')
 											]),
-										_switch ? (biggerThen1 ? A2(
+										_switch ? ((biggerThen1 && (A2(elm$core$Maybe$withDefault, 0, m.firstFactor) !== 10)) ? A2(
 											author$project$Main$addingSpanSmallMultiplication1,
 											author$project$Main$listToString(m.secondList),
 											m.step - 2) : _List_fromArray(
@@ -8503,18 +8494,32 @@ var author$project$Main$view = function (m) {
 												elm$html$Html$span,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$class(
-														(m.step > 1) ? 'spanNum5' : 'spanNum')
+														elm$html$Html$Attributes$class('spanNum')
 													]),
 												_List_fromArray(
 													[
 														elm$html$Html$text(m.secondFactorString)
 													]))
-											])) : A3(
+											])) : (biggerThen12 ? A3(
 											author$project$Main$addingSpanToNumberFirst,
 											author$project$Main$listToString(m.firstList),
 											m.step - 2,
-											elm$core$List$length(m.secondList))),
+											elm$core$List$length(m.secondList)) : ((biggerThen1 && (A2(elm$core$Maybe$withDefault, 0, m.secondFactor) !== 10)) ? A2(
+											author$project$Main$addingSpanSmallMultiplication1,
+											author$project$Main$listToString(m.firstList),
+											m.step - 2) : _List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('spanNum')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(m.firstFactorString)
+													]))
+											])))),
 										A2(
 										elm$html$Html$span,
 										_List_fromArray(
@@ -8543,11 +8548,23 @@ var author$project$Main$view = function (m) {
 													[
 														elm$html$Html$text(m.firstFactorString)
 													]))
-											]) : A2(
+											]) : (biggerThen12 ? A2(
 											author$project$Main$addingSpanToNumber,
 											elm$core$String$fromInt(
 												A2(elm$core$Maybe$withDefault, 0, m.secondFactor)),
-											1))
+											1) : _List_fromArray(
+											[
+												A2(
+												elm$html$Html$span,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('spanNum')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(m.secondFactorString)
+													]))
+											])))
 									])) : (((!_Utils_eq(m.firstFactor, elm$core$Maybe$Nothing)) && (m.operation === 'square')) ? A2(
 								elm$html$Html$span,
 								_List_fromArray(

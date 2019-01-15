@@ -666,7 +666,6 @@ update msg m =
               Just n ->
                 case (List.reverse m.stepCalculations, List.reverse m.result) of
                   ((h::t), (h2::t2)) -> ({m |  currAnswer = Nothing, wrongAnswers = m.wrongAnswers + (if ((Maybe.withDefault 0 m.firstFactor>12 && Maybe.withDefault 0 m.secondFactor>12) && m.operation /= "square") then (if ((h2 + m.carry * 10) == n) then 0 else 1) else (if (Tuple.second (Tuple.first h)== n) then 0 else 1)), answerInput = ""}, Cmd.none)
-                  ([], _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
                   (_, _) -> ({m | currAnswer = Nothing, answerInput = ""}, Cmd.none)
               Nothing -> ({m | currAnswer = Nothing, wrongAnswers = m.wrongAnswers + 1, answerInput = ""}, Cmd.none)
       Restart ->
@@ -716,9 +715,29 @@ view m =
       Html.div [class "calculationDiv"][if ((String.length m.firstFactorString)>10 || (String.length m.secondFactorString)>10) then
             text ("Please input smaller numbers than 11-digit numbers.")
           else if (m.firstFactor /= Nothing && m.secondFactor /= Nothing && m.operation == "multiply") then
-            Html.div [][Html.span [id "firstNumber"](if (switch) then (if (biggerThen1) then (addingSpanSmallMultiplication1 (listToString m.secondList) (m.step-2)) else ([Html.span[class (if m.step>1 then "spanNum5" else "spanNum")][text (m.secondFactorString)]])) else (addingSpanToNumberFirst (listToString  m.firstList) (m.step-2) (List.length m.secondList))),
+            Html.div [][Html.span [id "firstNumber"]
+              (if (switch) then
+                if (biggerThen1 && (Maybe.withDefault 0 m.firstFactor/=10)) then
+                  addingSpanSmallMultiplication1 (listToString m.secondList) (m.step-2)
+                else
+                  [Html.span[class "spanNum"][text (m.secondFactorString)]]
+              else
+                if (biggerThen12) then
+                  (addingSpanToNumberFirst (listToString  m.firstList) (m.step-2) (List.length m.secondList))
+                else
+                  if (biggerThen1 && (Maybe.withDefault 0 m.secondFactor/=10)) then
+                    addingSpanSmallMultiplication1 (listToString m.firstList) (m.step-2)
+                  else
+                    [Html.span[class "spanNum"][text (m.firstFactorString)]]),
             Html.span [id "operator"][text (" * ")],
-            Html.span [id "secondNumber"] (if (switch) then ([Html.span[class "spanNum"][text (m.firstFactorString)]]) else (addingSpanToNumber (String.fromInt (Maybe.withDefault 0 m.secondFactor)) 1))]
+            Html.span [id "secondNumber"]
+              (if (switch) then
+                ([Html.span[class "spanNum"][text (m.firstFactorString)]])
+              else
+                (if (biggerThen12) then
+                  (addingSpanToNumber (String.fromInt (Maybe.withDefault 0 m.secondFactor)) 1)
+                else
+                  ([Html.span[class "spanNum"][text (m.secondFactorString)]])))]
           else if (m.firstFactor /= Nothing && m.operation == "square") then
             Html.span [id "onlyNumber"] (if (List.length m.firstList > 3) then ([text "Squaring bigger numbers is not implemented in this application. We are sorry."]) else  [Html.span[class "spanNum"][text (m.firstFactorString)]])
           else
